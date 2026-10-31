@@ -1,25 +1,42 @@
-# DataOps Innovation Hackathon — PS2
+# 🔎 Document Forensics Assistant
 
-Selected challenge: **AI-Powered Document Forensics and Contextual Intelligence System**.
+### DataOps Innovation Hackathon — Problem Statement 2
 
-Build a working investigation system that extracts information from multiple documents, identifies visual and contextual anomalies, links findings to their original document locations, and produces an evidence-backed investigation dossier.
+This project aims to help a person review a group of documents and spot details that may need a closer look. It will read information from the documents, compare related details, point to unusual areas, and explain what it found.
 
-## Minimum prototype
+## 💡 Why this matters
 
-- Ingest multiple authorized scanned, image, or digital documents.
-- Extract and structure information using OCR.
-- Identify suspicious regions and visual inconsistencies.
-- Detect inconsistencies within and across documents.
-- Show source-linked evidence and confidence for findings.
-- Provide an interface to review extracted information and findings.
-- Generate a structured investigation dossier.
+Imagine reviewing an application form, an identity document, and a supporting letter. A name or date may differ between them. A number may appear to have been changed. Checking every page by hand takes time, and a simple text reader may miss the connection between documents.
 
-See [PS2 requirements](docs/ps2-requirements.md) for the detailed acceptance checklist and submission deliverables.
+Our goal is to bring those clues together so a reviewer can investigate them more easily.
 
-## Project status
+## 🧭 How the planned system will work
 
-Problem statement selected; implementation and technology choices are pending.
+1. **Add documents.** A reviewer uploads several permitted sample documents for one case.
+2. **Read the information.** The system reads printed text, including text in scanned pages or images, and organizes useful details such as names, dates, and amounts.
+3. **Compare the details.** It looks for missing or conflicting information within a document and across the group.
+4. **Look at the pages.** It highlights areas that appear visually unusual, such as a field with different spacing or alignment.
+5. **Show the evidence.** Each finding points back to the document and location that supports it.
+6. **Create a report.** The system produces an investigation summary with the findings, evidence, possible explanations, and items that need human review.
 
-## Getting started
+### 📝 A simple example
 
-Setup, dependencies, and run instructions will be added with the implementation.
+If an application form and a supporting document show different dates of birth, the system should display both values, show where each appears, and explain the mismatch. **A mismatch is a reason to check; it is not proof of fraud.**
+
+## 👀 What the hackathon demo should show
+
+- Uploading and reviewing more than one sample document.
+- Reading and organizing information from those documents.
+- Finding visual clues and differences within or across documents.
+- Clicking a finding to see its source on the original page.
+- Creating a clear investigation report.
+
+## 🚧 Current status
+
+We have selected Problem Statement 2 and documented its requirements. **The application has not been built yet.** This README describes the intended project, not features that are already available.
+
+When a working version is ready, this page will include simple steps to run it and try the demo.
+
+## 📚 More detail
+
+The [requirements checklist](docs/ps2-requirements.md) records the full prototype, demo, and submission expectations from the hackathon problem statement.
