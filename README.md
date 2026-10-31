@@ -1,16 +1,25 @@
-# DataOps Innovation Hackathon
+# DataOps Innovation Hackathon — PS2
 
-Workspace for the DataOps Innovation Hackathon project.
+Selected challenge: **AI-Powered Document Forensics and Contextual Intelligence System**.
 
-## Project direction
+Build a working investigation system that extracts information from multiple documents, identifies visual and contextual anomalies, links findings to their original document locations, and produces an evidence-backed investigation dossier.
 
-Choose one official problem statement before implementing the solution:
+## Minimum prototype
 
-- PS1: AI agent for authorized penetration testing.
-- PS2: AI-powered document forensics and contextual intelligence.
+- Ingest multiple authorized scanned, image, or digital documents.
+- Extract and structure information using OCR.
+- Identify suspicious regions and visual inconsistencies.
+- Detect inconsistencies within and across documents.
+- Show source-linked evidence and confidence for findings.
+- Provide an interface to review extracted information and findings.
+- Generate a structured investigation dossier.
 
-The selected problem statement will determine the prototype, demonstration, documentation, and submission deliverables.
+See [PS2 requirements](docs/ps2-requirements.md) for the detailed acceptance checklist and submission deliverables.
+
+## Project status
+
+Problem statement selected; implementation and technology choices are pending.
 
 ## Getting started
 
-Project setup and run instructions will be added with the implementation. Keep evidence, architecture notes, and known limitations documented as the project develops.
+Setup, dependencies, and run instructions will be added with the implementation.
