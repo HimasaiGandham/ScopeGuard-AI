@@ -1,0 +1,26 @@
+# Local secrets and private data
+.env
+.env.*
+!.env.example
+private-data/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# JavaScript
+node_modules/
+
+# Generated and temporary files
+build/
+dist/
+tmp/
+*.log
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
