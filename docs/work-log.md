@@ -84,7 +84,7 @@ On 1 November 2026, reviewed the completed work and corrected model validation a
 
 ## Phase 4 follow up review
 
-On 1 November 2026, compared Phase 4 with both identical requirements files and the scoped processing plan. Reproduced and fixed five gaps: stale processed cases were accepted, frozen records allowed mutable collections, within-document findings could span documents, empty files could count as dossiers, and skipped contextual steps lost partial-input warnings. The expanded suite passed 42 tests, including a guarded answer-key isolation check. Python compilation, actual A01 verification, and the three practice scenarios also passed. The [detailed Phase 4 review](phase4-review.md) maps each mandatory prototype requirement to its contract support and remaining feature work. Full PS2 feature checkboxes remain open.
+On 1 November 2026, compared Phase 4 with both identical requirements files and the scoped processing plan. Reproduced and fixed five gaps: stale processed cases were accepted, frozen records allowed mutable collections, within-document findings could span documents, empty files could count as dossiers, and skipped contextual steps lost partial-input warnings. The expanded suite passed 42 tests, including a guarded answer-key isolation check. Python compilation, actual A01 verification, and the three practice scenarios also passed. Full PS2 feature checkboxes remain open. The separate review document is kept locally for personal reference.
 
 ## Remaining foundation phases
 
