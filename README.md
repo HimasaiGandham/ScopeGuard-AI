@@ -42,3 +42,5 @@ When a working version is ready, this page will include simple steps to run it a
 The [requirements checklist](docs/ps2-requirements.md) records the full prototype, demo, and submission expectations from the hackathon problem statement.
 
 The [foundation architecture](docs/architecture.md) explains how documents, findings, and source evidence will connect.
+
+The [project work record](docs/work-log.md) tracks completed phases, decisions, checks, and remaining work.
