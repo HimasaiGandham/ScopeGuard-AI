@@ -33,10 +33,12 @@ If an application form and a supporting document show different dates of birth, 
 
 ## 🚧 Current status
 
-We have selected Problem Statement 2 and documented its requirements. **The application has not been built yet.** This README describes the intended project, not features that are already available.
+We have selected Problem Statement 2, documented its requirements, and started the shared data model. **The application has not been built yet.** This README describes the intended project, not features that are already available.
 
 When a working version is ready, this page will include simple steps to run it and try the demo.
 
 ## 📚 More detail
 
 The [requirements checklist](docs/ps2-requirements.md) records the full prototype, demo, and submission expectations from the hackathon problem statement.
+
+The [foundation architecture](docs/architecture.md) explains how documents, findings, and source evidence will connect.
