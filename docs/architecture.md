@@ -41,6 +41,8 @@ Begin development with one three-document group, then test the same workflow on 
 
 The [local case manifest](local-manifest.md) records file identities, page counts, and hashes for A01 without copying source PDFs or reading evaluation labels.
 
+The [evidence tracing guide](evidence-tracing.md) describes a local manual example linking a finding to its exact source page and region. Its generated viewer and source-derived images are stored outside Git.
+
 ## Later implementation choices
 
 - Select OCR, document rendering, storage, and interface implementations in the respective feature branches.
@@ -53,4 +55,4 @@ The [local case manifest](local-manifest.md) records file identities, page count
 
 ## Foundation check
 
-From the repository root, run `python -m unittest discover -s tests -v` to validate source-region and evidence-link rules. This is a data-model check; it does not perform OCR or detect alterations.
+From the repository root, run `python -m unittest discover -s tests -v` to validate the shared models, manifest integrity, processing contracts, and manual evidence tracing. The checks do not implement actual OCR or automated alteration detection.

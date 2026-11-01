@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,12 @@ from .models import Document, InvestigationCase
 
 
 MANIFEST_VERSION = 1
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedManifest:
+    case: InvestigationCase
+    source_directory: Path
 
 
 def build_manifest(
@@ -90,6 +97,12 @@ def write_manifest(manifest: dict[str, Any], output_path: Path) -> None:
 def verify_manifest(manifest_path: Path) -> InvestigationCase:
     """Recheck the exact files recorded by a local manifest."""
 
+    return load_verified_manifest(manifest_path).case
+
+
+def load_verified_manifest(manifest_path: Path) -> VerifiedManifest:
+    """Verify once and return the case with its verified source directory."""
+
     with manifest_path.open("r", encoding="utf-8") as stream:
         manifest = json.load(stream)
     if not isinstance(manifest, dict):
@@ -144,7 +157,8 @@ def verify_manifest(manifest_path: Path) -> InvestigationCase:
             )
         )
 
-    return InvestigationCase(case_id=manifest["case_id"], documents=tuple(documents))
+    case = InvestigationCase(case_id=manifest["case_id"], documents=tuple(documents))
+    return VerifiedManifest(case=case, source_directory=source_directory)
 
 
 def _pdf_path(source_directory: Path, filename: str) -> Path:

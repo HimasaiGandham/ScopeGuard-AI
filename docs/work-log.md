@@ -15,7 +15,8 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 | Foundation phase 2: shared data format | Complete |
 | Foundation phase 3: safe local file tracking | Complete |
 | Foundation phase 4: processing contracts | Complete |
-| Foundation phase 5: evidence tracing demonstration | Next |
+| Foundation phase 5: evidence tracing demonstration | Complete |
+| Foundation phase 6: handoff | Next |
 | Application, OCR, visual analysis, reviewer interface, and dossier | Not implemented yet |
 | Public dataset upload | None |
 | Merge into `main` | Not started |
@@ -86,13 +87,19 @@ On 1 November 2026, reviewed the completed work and corrected model validation a
 
 On 1 November 2026, compared Phase 4 with both identical requirements files and the scoped processing plan. Reproduced and fixed five gaps: stale processed cases were accepted, frozen records allowed mutable collections, within-document findings could span documents, empty files could count as dossiers, and skipped contextual steps lost partial-input warnings. The expanded suite passed 42 tests, including a guarded answer-key isolation check. Python compilation, actual A01 verification, and the three practice scenarios also passed. Full PS2 feature checkboxes remain open. The separate review document is kept locally for personal reference.
 
+## Foundation phase 5 — prove evidence tracing
+
+**Completed on 1 November 2026:** Added `docforensics/trace.py` to link a manual finding to its verified document, page, and normalized source region. The example uses A01-D03 page 1, with a student ID area selected by inspecting the source page rather than reading evaluation labels. `load_verified_manifest` returns the case and verified source folder together while preserving the existing `verify_manifest` interface.
+
+**Local artifacts:** Created source-page, marked-page, and crop PNGs, a trace JSON record, and an interactive local HTML viewer at 72 and 144 dpi under `../output/pdf/ocr_assignment_dataset/evidence/A01-D03-72dpi` and `A01-D03-144dpi`. Artifacts and source PDFs remain outside Git. The manual example retains pending review and unknown confidence and makes no automated anomaly or authenticity claim.
+
+**Checks:** The full suite passed 54 tests and Python compilation passed. Tests cover source fingerprints, changed inputs before and after verification, pixel rounding, multiple pages, rotation and PDF crop settings, safe output paths, oversized renders, overwrite prevention, escaped text, and answer-key isolation. The real A01 example has the same normalized region and source hash at both resolutions. Browser checks passed six combinations of 50/100/150 percent zoom and 1280/600-pixel viewports, with a working source button, correct local PDF page link, and zero script errors. The marked page, crop, desktop viewer, and narrow viewer were visually inspected. A01 verification still reports three unchanged PDFs.
+
+**Documentation:** [Evidence tracing guide](evidence-tracing.md) explains the viewer, files, coordinate convention, commands, checks, and limits. Pillow 12.3.0 is pinned with the existing PyMuPDF dependency for reproducible image marking and cropping.
+
+**Limit:** This phase proves source-region mapping for a manually selected example. Automatic OCR, discrepancy detection, the full reviewer application, and dossier generation remain later feature work.
+
 ## Remaining foundation phases
-
-### Phase 5 — prove evidence tracing
-
-- Use an A01 example to link a case to a finding and then to a marked region on its original page.
-- Check page-coordinate conversion against the source image dimensions.
-- Confirm that the example does not use the answer key to generate a finding.
 
 ### Phase 6 — hand off the foundation
 
