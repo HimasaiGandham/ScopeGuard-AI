@@ -44,3 +44,5 @@ The [requirements checklist](docs/ps2-requirements.md) records the full prototyp
 The [foundation architecture](docs/architecture.md) explains how documents, findings, and source evidence will connect.
 
 The [project work record](docs/work-log.md) tracks completed phases, decisions, checks, and remaining work.
+
+The [foundation audit](docs/foundation-audit.md) records the checks and fixes from a review of phases 1–3.

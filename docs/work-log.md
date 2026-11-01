@@ -10,7 +10,7 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 | --- | --- |
 | Selected challenge | PS2: AI-Powered Document Forensics and Contextual Intelligence System |
 | Active branch | `feature/foundation` |
-| Latest implementation commit before this record | `d9a7433` — Establish PS2 evidence and case models |
+| Branch history | See `git log` for the current commit and phase history |
 | Foundation phase 1: sample inventory | Complete |
 | Foundation phase 2: shared data format | Complete |
 | Foundation phase 3: safe local file tracking | Complete |
@@ -60,6 +60,10 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 **Documentation:** `docs/local-manifest.md` contains the exact create and verify commands and explains the manifest fields. The local generated file is `../output/pdf/ocr_assignment_dataset/manifests/A01.json` relative to the repository root; it is not committed.
 
 **Limit:** This phase identifies and preserves the sample inputs. It does not extract text or decide which PDF is altered.
+
+## Foundation phases 1–3 audit
+
+On 1 November 2026, reviewed the completed work and corrected model validation and manifest verification gaps. The expanded suite passed 19 tests; compilation and the real A01 verification also passed. The dataset inventory matched all 15 PDFs to 15 answer-key rows and five groups of three. The findings, fixes, test results, and remaining limits are recorded in [the detailed audit](foundation-audit.md). Foundation phase 4 remains next.
 
 ## Remaining foundation phases
 

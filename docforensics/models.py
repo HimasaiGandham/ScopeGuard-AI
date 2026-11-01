@@ -38,7 +38,7 @@ class SourceRegion:
     y2: float
 
     def __post_init__(self) -> None:
-        if self.page_number < 1:
+        if type(self.page_number) is not int or self.page_number < 1:
             raise ValueError("page_number must start at 1")
         coordinates = (self.x1, self.y1, self.x2, self.y2)
         if not all(isfinite(value) and 0 <= value <= 1 for value in coordinates):
@@ -92,7 +92,9 @@ class Document:
     def __post_init__(self) -> None:
         if not self.document_id.strip() or not self.filename.strip():
             raise ValueError("document_id and filename are required")
-        if self.page_count is not None and self.page_count < 1:
+        if self.page_count is not None and (
+            type(self.page_count) is not int or self.page_count < 1
+        ):
             raise ValueError("page_count must be positive when known")
         if self.content_sha256 is not None and not fullmatch(
             r"[0-9a-fA-F]{64}", self.content_sha256
@@ -127,8 +129,12 @@ class Finding:
     review_state: ReviewState = ReviewState.PENDING
 
     def __post_init__(self) -> None:
-        if not self.finding_id.strip() or not self.observation.strip():
-            raise ValueError("finding_id and observation are required")
+        if not self.finding_id.strip() or not self.observation.strip() or not self.explanation.strip():
+            raise ValueError("finding_id, observation, and explanation are required")
+        if not isinstance(self.category, FindingCategory):
+            raise ValueError("finding category is not supported")
+        if not isinstance(self.review_state, ReviewState):
+            raise ValueError("review state is not supported")
         if not self.evidence:
             raise ValueError("a finding must have at least one evidence reference")
         _check_confidence(self.confidence)

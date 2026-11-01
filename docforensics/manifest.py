@@ -34,8 +34,12 @@ def build_manifest(
 
     records: list[dict[str, Any]] = []
     documents: list[Document] = []
+    seen_paths: set[Path] = set()
     for index, filename in enumerate(sorted(filenames), start=1):
         pdf_path = _pdf_path(source_directory, filename)
+        if pdf_path in seen_paths:
+            raise ValueError(f"the same PDF was listed more than once: {filename}")
+        seen_paths.add(pdf_path)
         digest_before = _sha256(pdf_path)
         with pymupdf.open(pdf_path) as pdf:
             if not pdf.is_pdf or pdf.needs_pass or pdf.page_count < 1:
@@ -77,10 +81,10 @@ def write_manifest(manifest: dict[str, Any], output_path: Path) -> None:
 
     output_path = output_path.resolve()
     _require_outside_git(output_path)
+    serialized = json.dumps(manifest, indent=2, ensure_ascii=False) + "\n"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("x", encoding="utf-8", newline="\n") as stream:
-        json.dump(manifest, stream, indent=2, ensure_ascii=False)
-        stream.write("\n")
+        stream.write(serialized)
 
 
 def verify_manifest(manifest_path: Path) -> InvestigationCase:
@@ -88,8 +92,14 @@ def verify_manifest(manifest_path: Path) -> InvestigationCase:
 
     with manifest_path.open("r", encoding="utf-8") as stream:
         manifest = json.load(stream)
+    if not isinstance(manifest, dict):
+        raise ValueError("manifest must be a JSON object")
     if manifest.get("manifest_version") != MANIFEST_VERSION:
         raise ValueError("unsupported manifest version")
+    if not isinstance(manifest.get("case_id"), str) or not manifest["case_id"].strip():
+        raise ValueError("manifest must have a case_id")
+    if not isinstance(manifest.get("source_directory"), str):
+        raise ValueError("manifest must have a source_directory")
 
     source_directory = Path(manifest["source_directory"]).resolve(strict=True)
     if not source_directory.is_dir():
@@ -100,7 +110,23 @@ def verify_manifest(manifest_path: Path) -> InvestigationCase:
         raise ValueError("manifest must list at least one document")
 
     documents: list[Document] = []
-    for record in records:
+    seen_filenames: set[str] = set()
+    for index, record in enumerate(records, start=1):
+        if not isinstance(record, dict):
+            raise ValueError(f"document record {index} must be an object")
+        if not isinstance(record.get("filename"), str):
+            raise ValueError(f"document record {index} must have a filename")
+        if type(record.get("size_bytes")) is not int or record["size_bytes"] < 0:
+            raise ValueError(f"document record {index} must have a byte size")
+        if type(record.get("page_count")) is not int or record["page_count"] < 1:
+            raise ValueError(f"document record {index} must have a page count")
+        if not isinstance(record.get("content_sha256"), str):
+            raise ValueError(f"document record {index} must have a SHA-256 hash")
+        if record["document_id"] != f"{manifest['case_id']}-D{index:02d}":
+            raise ValueError(f"document ID does not match its position: {record['filename']}")
+        if record["filename"].casefold() in seen_filenames:
+            raise ValueError(f"PDF is listed more than once: {record['filename']}")
+        seen_filenames.add(record["filename"].casefold())
         pdf_path = _pdf_path(source_directory, record["filename"])
         if pdf_path.stat().st_size != record["size_bytes"]:
             raise ValueError(f"file size changed: {record['filename']}")
@@ -164,7 +190,7 @@ def main() -> None:
         else:
             case = verify_manifest(args.manifest)
             print(f"Verified {case.case_id}: {len(case.documents)} unchanged PDFs")
-    except (FileExistsError, FileNotFoundError, KeyError, OSError, RuntimeError, ValueError) as exc:
+    except (FileExistsError, FileNotFoundError, KeyError, OSError, RuntimeError, TypeError, ValueError) as exc:
         parser.exit(1, f"Manifest error: {exc}\n")
 
 

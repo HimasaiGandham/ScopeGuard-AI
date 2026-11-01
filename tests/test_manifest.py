@@ -38,6 +38,51 @@ class ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "file size changed"):
             verify_manifest(output)
 
+        # A size-only check would miss this change; the digest must catch it.
+        changed = bytearray(before)
+        changed[-1] ^= 1
+        self.pdf_path.write_bytes(changed)
+        with self.assertRaisesRegex(ValueError, "file hash changed"):
+            verify_manifest(output)
+
+    def test_existing_manifest_is_not_replaced(self) -> None:
+        manifest = build_manifest("A01", self.source, ["sample_001.pdf"])
+        output = self.root / "A01.json"
+        write_manifest(manifest, output)
+        original = output.read_bytes()
+        with self.assertRaises(FileExistsError):
+            write_manifest(manifest, output)
+        self.assertEqual(output.read_bytes(), original)
+
+    def test_unserializable_manifest_does_not_leave_partial_file(self) -> None:
+        output = self.root / "A01.json"
+        with self.assertRaises(TypeError):
+            write_manifest({"unsupported": object()}, output)
+        self.assertFalse(output.exists())
+
+    def test_changed_document_id_is_rejected(self) -> None:
+        manifest = build_manifest("A01", self.source, ["sample_001.pdf"])
+        manifest["documents"][0]["document_id"] = "wrong-id"
+        output = self.root / "A01.json"
+        write_manifest(manifest, output)
+        with self.assertRaisesRegex(ValueError, "document ID"):
+            verify_manifest(output)
+
+    def test_duplicate_file_record_is_rejected(self) -> None:
+        manifest = build_manifest("A01", self.source, ["sample_001.pdf"])
+        duplicate = dict(manifest["documents"][0], document_id="A01-D02")
+        manifest["documents"].append(duplicate)
+        output = self.root / "A01.json"
+        write_manifest(manifest, output)
+        with self.assertRaisesRegex(ValueError, "listed more than once"):
+            verify_manifest(output)
+
+    def test_malformed_manifest_is_rejected_cleanly(self) -> None:
+        output = self.root / "malformed.json"
+        output.write_text("[]", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "JSON object"):
+            verify_manifest(output)
+
     def test_answer_key_is_not_read_or_embedded(self) -> None:
         (self.root / "ground_truth.csv").write_text("secret,label\nA01,altered\n", encoding="utf-8")
         manifest = build_manifest("A01", self.source, ["sample_001.pdf"])
