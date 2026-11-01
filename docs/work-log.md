@@ -55,6 +55,8 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 
 **Checks run:** `python -m unittest discover -s tests -v` passed the model and manifest checks. The manifest tests cover unchanged-file verification, a changed-file failure, separation from the answer key, and path safeguards. The tested PDF dependency is recorded in `requirements.txt`.
 
+**User verification (1 November 2026, India Standard Time):** The user ran the test command in PowerShell and reported `Ran 10 tests` followed by `OK`. They also ran the manifest verification command and received `Verified A01: 3 unchanged PDFs`, then inspected the generated JSON containing the three document IDs, filenames, page counts, sizes, and hashes.
+
 **Documentation:** `docs/local-manifest.md` contains the exact create and verify commands and explains the manifest fields. The local generated file is `../output/pdf/ocr_assignment_dataset/manifests/A01.json` relative to the repository root; it is not committed.
 
 **Limit:** This phase identifies and preserves the sample inputs. It does not extract text or decide which PDF is altered.
