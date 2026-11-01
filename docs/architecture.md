@@ -39,6 +39,8 @@ The provided 15 scanned PDFs are in `../output/pdf/ocr_assignment_dataset/pdfs` 
 
 Begin development with one three-document group, then test the same workflow on the remaining groups. The five groups contain variants of a single document each, so a later demonstration should also include related document types if cross-document contextual reasoning needs stronger evidence.
 
+The [local case manifest](local-manifest.md) records file identities, page counts, and hashes for A01 without copying source PDFs or reading evaluation labels.
+
 ## Remaining foundation choices
 
 - Select OCR, document rendering, storage, and interface implementations in the respective feature branches.

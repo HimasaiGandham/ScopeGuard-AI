@@ -13,7 +13,8 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 | Latest implementation commit before this record | `d9a7433` — Establish PS2 evidence and case models |
 | Foundation phase 1: sample inventory | Complete |
 | Foundation phase 2: shared data format | Complete |
-| Foundation phase 3: safe local file tracking | Next |
+| Foundation phase 3: safe local file tracking | Complete |
+| Foundation phase 4: processing contracts | Next |
 | Application, OCR, visual analysis, reviewer interface, and dossier | Not implemented yet |
 | Public dataset upload | None |
 | Merge into `main` | Not started |
@@ -44,14 +45,21 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 
 **Documentation:** `docs/architecture.md` contains the intended processing flow, shared records, coordinate convention, and local data handling approach. The README accurately says that the application itself is not built yet.
 
+## Foundation phase 3 — track sample files safely
+
+**Completed:** Added `docforensics/manifest.py`, a reusable command to create and verify a local case manifest. Created an A01 manifest outside Git for `sample_001.pdf`, `sample_002.pdf`, and `sample_003.pdf`. The three stable IDs are `A01-D01`, `A01-D02`, and `A01-D03`. Each entry records the original filename, one-page count, byte size, and SHA-256 digest. The source folder is also recorded so the case can locate the exact input files.
+
+**Integrity check:** Recorded SHA-256 values for the three PDFs before running the tool and compared them afterward; all were unchanged. The `verify` command independently rechecked all three files against the local manifest and succeeded.
+
+**Separation check:** The tool accepts an explicit list of PDF filenames and does not read `ground_truth.csv`. The answer key and PDFs remain outside Git. The manifest writer rejects an output path inside this project checkout and refuses to overwrite an existing manifest. The source directory must also be outside the checkout.
+
+**Checks run:** `python -m unittest discover -s tests -v` passed the model and manifest checks. The manifest tests cover unchanged-file verification, a changed-file failure, separation from the answer key, and path safeguards. The tested PDF dependency is recorded in `requirements.txt`.
+
+**Documentation:** `docs/local-manifest.md` contains the exact create and verify commands and explains the manifest fields. The local generated file is `../output/pdf/ocr_assignment_dataset/manifests/A01.json` relative to the repository root; it is not committed.
+
+**Limit:** This phase identifies and preserves the sample inputs. It does not extract text or decide which PDF is altered.
+
 ## Remaining foundation phases
-
-### Phase 3 — track sample files safely
-
-- Build a local A01 case manifest containing stable document IDs, filenames, page counts, and SHA-256 hashes.
-- Keep source PDFs unchanged and outside Git.
-- Keep the answer key separate from runtime input.
-- Verify that a case can identify exactly which files it used.
 
 ### Phase 4 — define processing contracts
 
