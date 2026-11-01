@@ -95,6 +95,14 @@ class FoundationModelTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "time zone"):
             AuditEvent("event-1", datetime(2026, 11, 1, 10, 0), "review")
 
+    def test_mutable_collections_cannot_change_case_after_validation(self) -> None:
+        with self.assertRaisesRegex(ValueError, "tuple"):
+            InvestigationCase("case-1", documents=[self.document])
+        with self.assertRaisesRegex(ValueError, "tuple"):
+            InvestigationCase("case-1", documents=(self.document,), fields=[])
+        with self.assertRaisesRegex(ValueError, "tuple"):
+            Finding("finding-1", FindingCategory.VISUAL, "A mark", "Inspect it", [self.evidence])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -213,8 +213,12 @@ def run_pipeline(
     can wait for a person; dossier generation then stays pending. Retry flags
     are descriptive: this coordinator does not automatically retry adapters.
     """
+    if not isinstance(case, InvestigationCase):
+        raise ValueError("case must use InvestigationCase")
     if not case.documents:
         raise ValueError("processing requires at least one document")
+    if case.fields or case.findings:
+        raise ValueError("processing requires a fresh case without earlier fields or findings; resume is not supported")
     if type(practice_mode) is not bool:
         raise ValueError("practice_mode must be true or false")
     if any(not isinstance(stage, Stage) or not callable(adapter) for stage, adapter in adapters.items()):
@@ -275,15 +279,17 @@ class _Coordinator:
         self.case = replace(self.case, audit_events=self.case.audit_events + (event,))
 
     def skip(self, stage: Stage, ids: tuple[str, ...], reason: str,
-             code: ErrorCode = ErrorCode.DEPENDENCY_FAILED) -> StepRecord:
+             code: ErrorCode = ErrorCode.DEPENDENCY_FAILED,
+             warnings: tuple[ProcessingWarning, ...] = ()) -> StepRecord:
         record = StepRecord(stage, ids, Status.SKIPPED, finished_at=datetime.now(timezone.utc),
-                            error=ProcessingError(code, reason), reason=reason)
+                            error=ProcessingError(code, reason), reason=reason, warnings=warnings)
         self.steps.append(record)
         self.event(stage, Status.SKIPPED, ids, reason)
         return record
 
-    def wait(self, stage: Stage, ids: tuple[str, ...], reason: str) -> StepRecord:
-        record = StepRecord(stage, ids, Status.PENDING, reason=reason)
+    def wait(self, stage: Stage, ids: tuple[str, ...], reason: str,
+             warnings: tuple[ProcessingWarning, ...] = ()) -> StepRecord:
+        record = StepRecord(stage, ids, Status.PENDING, reason=reason, warnings=warnings)
         self.steps.append(record)
         self.event(stage, Status.PENDING, ids, reason)
         return record
@@ -293,8 +299,8 @@ class _Coordinator:
         adapter = self.adapters.get(stage)
         if adapter is None:
             if stage == Stage.REVIEW:
-                return self.wait(stage, ids, "Waiting for a human review adapter")
-            return self.skip(stage, ids, "No adapter is implemented for this step", ErrorCode.NOT_IMPLEMENTED)
+                return self.wait(stage, ids, "Waiting for a human review adapter", warnings)
+            return self.skip(stage, ids, "No adapter is implemented for this step", ErrorCode.NOT_IMPLEMENTED, warnings)
         started = datetime.now(timezone.utc)
         self.event(stage, Status.RUNNING, ids, "Practice adapter started" if self.practice_mode else "Adapter started")
         try:
@@ -377,6 +383,8 @@ class _Coordinator:
                 raise ValueError("contextual analysis cannot return visual findings")
             if finding.category == FindingCategory.CROSS_DOCUMENT and len({e.document_id for e in finding.evidence}) < 2:
                 raise ValueError("cross-document findings require evidence from two documents")
+            if finding.category == FindingCategory.WITHIN_DOCUMENT and len({e.document_id for e in finding.evidence}) != 1:
+                raise ValueError("within-document findings must reference exactly one document")
         decisions = {decision.finding_id: decision for decision in output.reviews}
         if len(decisions) != len(output.reviews) or not set(decisions) <= {f.finding_id for f in self.case.findings}:
             raise ValueError("review decisions must name unique existing findings")
@@ -385,8 +393,8 @@ class _Coordinator:
         if stage == Stage.REVIEW and any(f.review_state == ReviewState.PENDING for f in findings):
             raise ValueError("unreviewed findings must wait for a human decision")
         if stage == Stage.DOSSIER and not self.practice_mode:
-            if not output.artifact_path or not Path(output.artifact_path).is_file():
-                raise ValueError("dossier must return an existing file")
+            if not output.artifact_path or not Path(output.artifact_path).is_file() or Path(output.artifact_path).stat().st_size == 0:
+                raise ValueError("dossier must return an existing nonempty file")
         documents = tuple(updates.get(document.document_id, document) for document in self.case.documents)
         candidate = replace(self.case, documents=documents, fields=self.case.fields + output.fields,
                             findings=findings + output.findings)

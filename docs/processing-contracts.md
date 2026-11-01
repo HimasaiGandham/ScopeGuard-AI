@@ -17,7 +17,9 @@ Every request includes the current case, the document IDs eligible for that step
 
 OCR and visual work continue independently after ingestion. An OCR failure does not prevent a visual check of the same document. A failed ingestion skips both. Contextual comparison proceeds on available OCR results with a partial-input warning when appropriate. The case retains the original document records so failed documents remain visible.
 
-Output is validated before being added to the case. Duplicate IDs, invalid source regions, output for a different document, and data returned by the wrong step are rejected without adding that output. Ingestion may classify a document but cannot change its verified source identity.
+Output is validated before being added to the case. Duplicate IDs, invalid source regions, output for a different document, and data returned by the wrong step are rejected without adding that output. A within-document finding must reference exactly one document; a cross-document finding must reference at least two. Ingestion may classify a document but cannot change its verified source identity. A real dossier output must be an existing nonempty file; its actual report content is checked in the future dossier branch.
+
+Runs require a fresh case with no previous extracted fields or findings. Reusing an earlier processed case is rejected so a failed OCR step cannot leave stale values in the new comparison. Case collections and finding evidence use immutable tuples. Resume and retry workflows must be designed explicitly before accepting prior analysis records as inputs.
 
 ## Status meanings
 
@@ -74,10 +76,12 @@ Each practice run first verifies the source manifest and prints `PRACTICE ONLY`.
 - **OCR failure:** A01-D02 has a simulated retryable timeout. Its visual step still runs. Contextual comparison receives A01-D01 and A01-D03 and displays a partial-input warning.
 - **Awaiting review:** Review and dossier remain pending. The dossier adapter is not started.
 
-Add `--json` to print the structured progress summary. The runtime reads the named manifest and its PDFs; `ground_truth.csv` remains separate.
+Add `--json` to print the structured progress summary. The runtime reads the named manifest and its PDFs; `ground_truth.csv` remains separate. A practice command exits successfully when its selected simulation runs, including the intentionally injected failure scenario; inspect the printed statuses or JSON for that simulated failure.
 
 ## Verification evidence
 
 The tests exercise shared field and finding exchange, document classification without identity changes, valid review decisions, input-scope checks, per-document failure isolation, partial inputs, waiting review, unavailable adapters, safe unexpected-error messages, low-confidence warnings, report-file validation, invalid page references, and manifest-to-practice integration. Original synthetic test cases remain unchanged when output validation fails.
 
 The next foundation phase will demonstrate a real page-region link using the A01 source images. Feature adapters for actual OCR and analysis remain in their planned branches.
+
+See [the Phase 4 requirements review](phase4-review.md) for requirement coverage, fixes, regression tests, and remaining prototype work.

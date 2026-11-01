@@ -79,6 +79,8 @@ class EvidenceRef:
     def __post_init__(self) -> None:
         if not self.document_id.strip():
             raise ValueError("evidence must name a document")
+        if not isinstance(self.region, SourceRegion):
+            raise ValueError("evidence regions must use SourceRegion")
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,6 +115,8 @@ class ExtractedField:
     def __post_init__(self) -> None:
         if not self.field_id.strip() or not self.name.strip():
             raise ValueError("field_id and name are required")
+        if not isinstance(self.source, EvidenceRef):
+            raise ValueError("field sources must use EvidenceRef")
         _check_confidence(self.confidence)
 
 
@@ -135,8 +139,12 @@ class Finding:
             raise ValueError("finding category is not supported")
         if not isinstance(self.review_state, ReviewState):
             raise ValueError("review state is not supported")
+        if not isinstance(self.evidence, tuple):
+            raise ValueError("finding evidence must be a tuple")
         if not self.evidence:
             raise ValueError("a finding must have at least one evidence reference")
+        if any(not isinstance(item, EvidenceRef) for item in self.evidence):
+            raise ValueError("finding evidence must use EvidenceRef")
         _check_confidence(self.confidence)
 
 
@@ -166,6 +174,14 @@ class InvestigationCase:
     def __post_init__(self) -> None:
         if not self.case_id.strip():
             raise ValueError("case_id is required")
+        for items, item_type in (
+            (self.documents, Document), (self.fields, ExtractedField),
+            (self.findings, Finding), (self.audit_events, AuditEvent),
+        ):
+            if not isinstance(items, tuple):
+                raise ValueError("case collections must be tuples")
+            if any(not isinstance(item, item_type) for item in items):
+                raise ValueError(f"case collection items must use {item_type.__name__}")
         _check_unique((document.document_id for document in self.documents), "document")
         _check_unique((item.field_id for item in self.fields), "field")
         _check_unique((item.finding_id for item in self.findings), "finding")

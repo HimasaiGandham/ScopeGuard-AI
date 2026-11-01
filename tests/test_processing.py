@@ -78,6 +78,12 @@ class ProcessingTests(unittest.TestCase):
         self.assertEqual(self.case.audit_events, ())
         self.assertEqual(run.case.documents, self.case.documents)
         self.assertTrue(run.summary()["has_dossier"])
+        self.assertEqual(sum(e.action.endswith(".running") for e in run.case.audit_events), len(run.steps))
+        self.assertEqual(len({e.event_id for e in run.case.audit_events}), len(run.case.audit_events))
+        self.assertTrue(all(e.occurred_at.utcoffset() is not None for e in run.case.audit_events))
+        self.assertTrue(any("reviewer=test-reviewer; note=Fixture review" in (e.details or "")
+                            for e in run.case.audit_events))
+        self.assertNotIn("Fixture review", str(run.summary()))
 
     def test_ocr_failure_keeps_other_document_and_limits_context_input(self):
         context_inputs = []
@@ -217,6 +223,42 @@ class ProcessingTests(unittest.TestCase):
 
         run = run_pipeline(self.case, self.adapters(ocr=fail))
         self.assertEqual(self.step(run, Stage.OCR, ("d1",)).error.code, ErrorCode.INVALID_OUTPUT)
+
+    def test_previously_processed_case_cannot_reuse_stale_fields_or_findings(self):
+        stale_finding = Finding("old", FindingCategory.VISUAL, "Old observation", "Old explanation",
+                                (self.evidence("d1"),))
+        for case in (replace(self.case, fields=(self.field("d1"),)),
+                     replace(self.case, findings=(stale_finding,))):
+            with self.subTest(case=case):
+                with self.assertRaisesRegex(ValueError, "fresh case"):
+                    run_pipeline(case, self.adapters())
+
+    def test_within_document_finding_cannot_span_multiple_documents(self):
+        def contextual(request):
+            return StepOutput(findings=(Finding("wrong-scope", FindingCategory.WITHIN_DOCUMENT,
+                "Fixture mismatch", "Fixture explanation", (self.evidence("d1"), self.evidence("d2"))),))
+
+        run = run_pipeline(self.case, self.adapters(contextual=contextual))
+        self.assertEqual(self.step(run, Stage.CONTEXTUAL).status, Status.FAILED)
+        self.assertEqual(self.step(run, Stage.CONTEXTUAL).error.code, ErrorCode.INVALID_OUTPUT)
+
+    def test_empty_dossier_file_is_rejected(self):
+        self.report.write_bytes(b"")
+        run = run_pipeline(self.case, self.adapters())
+        self.assertEqual(self.step(run, Stage.DOSSIER).status, Status.FAILED)
+        self.assertFalse(run.summary()["has_dossier"])
+
+    def test_skipped_context_retains_partial_input_warning(self):
+        def ocr(request):
+            if request.document_ids == ("d1",):
+                raise StepFailure(ProcessingError(ErrorCode.UNREADABLE_DOCUMENT, "Cannot read document"))
+            return self.adapter(request)
+
+        mapping = self.adapters(ocr=ocr)
+        del mapping[Stage.CONTEXTUAL]
+        run = run_pipeline(self.case, mapping)
+        self.assertEqual(self.step(run, Stage.CONTEXTUAL).status, Status.SKIPPED)
+        self.assertEqual(self.step(run, Stage.CONTEXTUAL).warnings[0].code, WarningCode.PARTIAL_INPUT)
 
 
 if __name__ == "__main__":

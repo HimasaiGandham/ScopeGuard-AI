@@ -1,6 +1,10 @@
 import tempfile
 import unittest
+import builtins
+import io
+import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pymupdf
 
@@ -38,6 +42,21 @@ class PracticeIntegrationTests(unittest.TestCase):
         self.pdf.write_bytes(self.pdf.read_bytes() + b"changed")
         with self.assertRaisesRegex(ValueError, "file size changed"):
             practice_run(self.manifest)
+
+    def test_practice_does_not_open_the_answer_key(self):
+        (self.root / "ground_truth.csv").write_text("private evaluation labels", encoding="utf-8")
+
+        def guard(opener):
+            def guarded(file, *args, **kwargs):
+                if isinstance(file, (str, os.PathLike)) and Path(file).name == "ground_truth.csv":
+                    self.fail("practice runtime attempted to read evaluation labels")
+                return opener(file, *args, **kwargs)
+            return guarded
+
+        with patch("builtins.open", guard(builtins.open)), patch("io.open", guard(io.open)):
+            for scenario in ("success", "ocr-failure", "awaiting-review"):
+                run = practice_run(self.manifest, scenario)
+                self.assertEqual(run.summary()["mode"], "practice")
 
 
 if __name__ == "__main__":
