@@ -33,7 +33,7 @@ If an application form and a supporting document show different dates of birth, 
 
 ## 🚧 Current status
 
-We have selected Problem Statement 2, documented its requirements, and started the shared data model. **The application has not been built yet.** This README describes the intended project, not features that are already available.
+We have selected Problem Statement 2, documented its requirements, built the shared data model and local file tracking, and added a practice flow for processing steps and errors. **The application has not been built yet.** This README describes the intended project, not features that are already available.
 
 When a working version is ready, this page will include simple steps to run it and try the demo.
 
@@ -46,3 +46,5 @@ The [foundation architecture](docs/architecture.md) explains how documents, find
 The [project work record](docs/work-log.md) tracks completed phases, decisions, checks, and remaining work.
 
 The [foundation audit](docs/foundation-audit.md) records the checks and fixes from a review of phases 1–3.
+
+The [processing guide](docs/processing-contracts.md) explains Phase 4 and gives commands for testing successful steps, a failed step, and waiting human review.

@@ -59,7 +59,7 @@ The real A01 manifest passed `python -m docforensics.manifest verify` after thes
 
 - Manifest verification detects a PDF change **relative to the stored manifest**. The manifest is not digitally signed; someone who changes both a PDF and its JSON record could defeat that comparison. Keep the local manifest and answer key under controlled access.
 - The dataset has variants of the same document template. A later demonstration needs related, different document types to establish broader cross-document reasoning.
-- The application, OCR, visual checks, comparison engine, review interface, and dossier are not implemented yet. Foundation phases 4–6 remain open.
+- At the time of this audit, the application, OCR, visual checks, comparison engine, review interface, and dossier were not implemented, and foundation phases 4–6 remained open. See the work log for subsequent progress.
 
 ## Files reviewed or changed
 

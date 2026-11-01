@@ -41,11 +41,15 @@ Begin development with one three-document group, then test the same workflow on 
 
 The [local case manifest](local-manifest.md) records file identities, page counts, and hashes for A01 without copying source PDFs or reading evaluation labels.
 
-## Remaining foundation choices
+## Later implementation choices
 
 - Select OCR, document rendering, storage, and interface implementations in the respective feature branches.
-- Decide how a reviewer records decisions and how those decisions appear in the dossier.
+- Persist the shared review decisions and expose them in the review interface and dossier.
 - Document unsupported formats and uncertain results rather than implying a complete forensic conclusion.
+
+## Processing contracts
+
+`docforensics/processing.py` defines the step requests, accepted outputs, statuses, errors, warnings, and review decisions. A synchronous coordinator validates adapter output and records audit events while keeping failures local to their affected inputs. The [processing contract guide](processing-contracts.md) contains the full rules and practice commands. Adapters for OCR, visual checks, contextual analysis, review screens, and report generation will be supplied by their feature branches.
 
 ## Foundation check
 

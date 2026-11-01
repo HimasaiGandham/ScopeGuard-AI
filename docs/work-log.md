@@ -14,7 +14,8 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 | Foundation phase 1: sample inventory | Complete |
 | Foundation phase 2: shared data format | Complete |
 | Foundation phase 3: safe local file tracking | Complete |
-| Foundation phase 4: processing contracts | Next |
+| Foundation phase 4: processing contracts | Complete |
+| Foundation phase 5: evidence tracing demonstration | Next |
 | Application, OCR, visual analysis, reviewer interface, and dossier | Not implemented yet |
 | Public dataset upload | None |
 | Merge into `main` | Not started |
@@ -63,15 +64,25 @@ This is the running record for the DataOps Innovation Hackathon PS2 project. It 
 
 ## Foundation phases 1–3 audit
 
-On 1 November 2026, reviewed the completed work and corrected model validation and manifest verification gaps. The expanded suite passed 19 tests; compilation and the real A01 verification also passed. The dataset inventory matched all 15 PDFs to 15 answer-key rows and five groups of three. The findings, fixes, test results, and remaining limits are recorded in [the detailed audit](foundation-audit.md). Foundation phase 4 remains next.
+On 1 November 2026, reviewed the completed work and corrected model validation and manifest verification gaps. The expanded suite passed 19 tests; compilation and the real A01 verification also passed. The dataset inventory matched all 15 PDFs to 15 answer-key rows and five groups of three. The findings, fixes, test results, and remaining limits are recorded in [the detailed audit](foundation-audit.md). At that audit, foundation phase 4 was next.
+
+## Foundation phase 4 — define processing contracts
+
+**Completed on 1 November 2026:** Added `docforensics/processing.py` with six steps, five progress states, shared request/output records, typed errors and warnings, human-review decisions, and a synchronous coordinator. Adapters receive the current case, eligible document IDs, and earlier step records. Outputs use the existing document, field, finding, and source-reference models. Classification can update the document type while preserving verified source identity.
+
+**Failure behaviour:** Ingestion failures skip only the affected document's OCR and visual steps. OCR failures leave visual checks available, and contextual comparison receives only documents whose OCR completed. Partial analysis produces a warning. Missing or waiting human review leaves the dossier pending. Invalid outputs are rejected before being added to the case. Known errors carry safe codes, messages, retry flags, and optional page locations; unexpected exception text is not exposed.
+
+**Practice command:** Added `docforensics/practice.py`. Its simulated adapters first verify the local source manifest, then exercise success, a single-document OCR timeout, or waiting human review. Every console run and JSON snapshot identifies practice mode. No source values, findings, actual human decisions, or dossiers are fabricated by the practice adapters, and the answer key is not read.
+
+**Checks:** The full suite passed 36 tests and Python compilation passed. Actual A01 practice runs verified the twelve-step success path with 24 audit events; a timeout on A01-D02 with contextual scope limited to A01-D01 and A01-D03; and pending review/dossier states without starting the dossier. A separate guard rejects analysis outputs that attempt to mark their own findings as human-reviewed. The normal manifest verification remains the input prerequisite.
+
+**Local output:** Progress snapshots for all three scenarios were saved outside Git in `../output/pdf/ocr_assignment_dataset/practice/phase4_success.json`, `phase4_ocr-failure.json`, and `phase4_awaiting-review.json`. Each snapshot explicitly records practice mode and no generated dossier. The A01 manifest verification still reports three unchanged PDFs after the runs.
+
+**Documentation:** [Processing contracts and test commands](processing-contracts.md) describes the stage inputs and outputs, statuses, errors, warnings, review handling, history, and manual checks.
+
+**Limits:** The coordinator stores history in memory and runs synchronously. Background jobs, automatic retry, persistent storage, and actual time limits are not implemented here; feature adapters must enforce their I/O time limits. The practice flow checks the coordination contracts rather than performing OCR or forensic analysis.
 
 ## Remaining foundation phases
-
-### Phase 4 — define processing contracts
-
-- Specify common inputs, outputs, statuses, and errors for ingestion, OCR, visual analysis, contextual comparison, and dossier generation.
-- Record processing and review activity as audit events.
-- Check that the planned modules can exchange the shared case, field, finding, and evidence records.
 
 ### Phase 5 — prove evidence tracing
 
