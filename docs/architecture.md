@@ -41,7 +41,7 @@ Begin development with one three-document group, then test the same workflow on 
 
 The [local case manifest](local-manifest.md) records file identities, page counts, and hashes for A01 without copying source PDFs or reading evaluation labels.
 
-The [evidence tracing guide](evidence-tracing.md) describes a local manual example linking a finding to its exact source page and region. Its generated viewer and source-derived images are stored outside Git.
+The [evidence tracing guide](evidence-tracing.md) describes both the fixed example and the local PDF upload screen. `docforensics/upload_app.py` serves a file picker, page preview, and manual region selection on the loopback interface. Each uploaded PDF becomes a separate verified manual case outside Git; the screen creates evidence bundles using the same tracing code and shared source coordinates. This is a partial interface for foundation verification; OCR, automatic findings, multi-document review, and reporting remain later work.
 
 ## Later implementation choices
 
@@ -55,4 +55,4 @@ The [evidence tracing guide](evidence-tracing.md) describes a local manual examp
 
 ## Foundation check
 
-From the repository root, run `python -m unittest discover -s tests -v` to validate the shared models, manifest integrity, processing contracts, and manual evidence tracing. The checks do not implement actual OCR or automated alteration detection.
+From the repository root, install `requirements-dev.txt`, then run `python -m unittest discover -s tests -v` to validate the shared models, manifest integrity, processing contracts, manual evidence tracing, and local upload endpoints. The checks do not implement actual OCR or automated alteration detection.

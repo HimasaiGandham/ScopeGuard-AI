@@ -40,6 +40,24 @@ def region_to_pixels(region: SourceRegion, width: int, height: int) -> tuple[int
             min(height, max(top + 1, ceil(region.y2 * height))))
 
 
+def render_source_page(source_bytes: bytes, page_number: int, dpi: int = 144) -> Image.Image:
+    """Render the displayed PDF page, with bounded memory use."""
+    if type(dpi) is not int or not 36 <= dpi <= 300:
+        raise ValueError("dpi must be an integer between 36 and 300")
+    if type(page_number) is not int or page_number < 1:
+        raise ValueError("page must be a positive integer")
+    with pymupdf.open(stream=source_bytes, filetype="pdf") as pdf:
+        if not pdf.is_pdf or pdf.needs_pass:
+            raise ValueError("PDF cannot be read without a password")
+        if page_number > pdf.page_count:
+            raise ValueError("page is beyond the source document")
+        page = pdf[page_number - 1]
+        if ceil(page.rect.width * dpi / 72) * ceil(page.rect.height * dpi / 72) > MAX_RENDER_PIXELS:
+            raise ValueError("page is too large at this dpi; choose a lower resolution")
+        pixmap = page.get_pixmap(dpi=dpi, colorspace=pymupdf.csRGB, alpha=False)
+        return Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+
+
 def create_evidence_trace(
     manifest_path: Path,
     document_id: str,
@@ -85,14 +103,7 @@ def create_evidence_trace(
     if rendered_hash != document.content_sha256.lower():
         raise ValueError("source changed after manifest verification")
 
-    with pymupdf.open(stream=source_bytes, filetype="pdf") as pdf:
-        page = pdf[region.page_number - 1]
-        predicted_width = ceil(page.rect.width * dpi / 72)
-        predicted_height = ceil(page.rect.height * dpi / 72)
-        if predicted_width * predicted_height > MAX_RENDER_PIXELS:
-            raise ValueError("page is too large at this dpi; choose a lower resolution")
-        pixmap = page.get_pixmap(dpi=dpi, colorspace=pymupdf.csRGB, alpha=False)
-        image = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+    image = render_source_page(source_bytes, region.page_number, dpi)
 
     box = region_to_pixels(region, image.width, image.height)
     crop = image.crop(box)
@@ -141,7 +152,8 @@ def create_evidence_trace(
     return TraceBundle(case, index_path, record_path)
 
 
-def _viewer(record: dict, source_path: Path) -> str:
+def _viewer(record: dict, source_path: Path, *, source_href: str | None = None,
+            upload_href: str | None = None) -> str:
     finding = record["finding"]
     source = record["source_document"]
     region = finding["evidence"][0]["region"]
@@ -149,7 +161,8 @@ def _viewer(record: dict, source_path: Path) -> str:
     x, y = region["x1"] * size["width"], region["y1"] * size["height"]
     width = (region["x2"] - region["x1"]) * size["width"]
     height = (region["y2"] - region["y1"]) * size["height"]
-    source_uri = escape(source_path.as_uri() + f"#page={region['page_number']}", quote=True)
+    source_uri = escape(source_href or (source_path.as_uri() + f"#page={region['page_number']}"), quote=True)
+    upload_link = f'<p><a href="{escape(upload_href, quote=True)}">Upload another PDF</a></p>' if upload_href else ""
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Manual evidence tracing demonstration</title>
@@ -163,6 +176,7 @@ a{{color:#164ba0}}button{{background:#173f76;color:white;padding:10px 16px;borde
 .detail{{font-size:14px;color:#41536a}}:focus-visible{{outline:3px solid #e8a012;outline-offset:3px}}
 </style></head><body><main>
 <h1>Manual evidence tracing demonstration</h1>
+{upload_link}
 <p class="banner">This is a manually selected source region. No automated alteration detection or authenticity decision was performed.</p>
 <section aria-labelledby="finding-title"><h2 id="finding-title">Finding to inspect</h2>
 <p>{escape(finding['observation'])}</p><p>{escape(finding['explanation'])}</p>

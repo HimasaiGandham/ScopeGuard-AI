@@ -33,9 +33,22 @@ If an application form and a supporting document show different dates of birth, 
 
 ## 🚧 Current status
 
-We have selected Problem Statement 2, documented its requirements, built the shared data model and local file tracking, and added a practice flow for processing steps and errors. A local manual example also shows how a finding points to a marked region on its source page. **The application has not been built yet.** This README describes the intended project, not features that are already available.
+We have selected Problem Statement 2, documented its requirements, built the shared data model and local file tracking, and added a practice flow for processing steps and errors. **A local PDF upload screen is now available:** choose your own PDF, select a page, draw a box, and create an evidence view linked to the source.
 
-When a working version is ready, this page will include simple steps to run it and try the demo.
+This first screen uses your manual selection. Automatic text reading, discrepancy detection, comparison across documents, and the investigation report are still to be built.
+
+## 📤 Try your own PDF
+
+Open PowerShell in the project folder and run:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m docforensics.upload_app
+```
+
+Open [the local upload screen](http://127.0.0.1:8765/). Choose a PDF, click **Upload and open PDF**, select a page, drag a box around an area, add your observation, and click **Create evidence view**. Keep PowerShell running while using the screen.
+
+The PDF copy and generated evidence stay on your computer outside the repository. See the [evidence tracing guide](docs/evidence-tracing.md) for limits, storage, and testing instructions.
 
 ## 📚 More detail
 
@@ -49,4 +62,6 @@ The [foundation audit](docs/foundation-audit.md) records the checks and fixes fr
 
 The [processing guide](docs/processing-contracts.md) explains Phase 4 and gives commands for testing successful steps, a failed step, and waiting human review.
 
-The [evidence tracing guide](docs/evidence-tracing.md) explains how to inspect the local Phase 5 example and verify its source link.
+The [evidence tracing guide](docs/evidence-tracing.md) explains how to upload your own PDF, select a region, and verify its source link.
+
+The [foundation handoff](docs/foundation-handoff.md) gives fresh setup and test instructions, shared contracts, limits, and the next OCR branch's starting point.

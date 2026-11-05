@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Upload your PDF</title><style>
+*{box-sizing:border-box}body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#f5f7fa;color:#172433}
+main{max-width:1150px;margin:auto;padding:28px}h1{font-size:30px;line-height:1.2}h2{font-size:22px}
+section{background:white;border:1px solid #cdd5df;border-radius:8px;padding:22px;margin:20px 0}
+button,.link-button{background:#173f76;color:white;padding:11px 18px;border:0;border-radius:5px;cursor:pointer;font:inherit;text-decoration:none;display:inline-block}
+button:disabled{opacity:.45;cursor:not-allowed}input,select,textarea{font:inherit}textarea{display:block;width:100%;min-height:90px;padding:10px;margin:8px 0 15px}
+input[type=file]{display:block;max-width:100%;margin:12px 0 18px}.controls{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.canvas{overflow:auto;border:1px solid #cdd5df;background:#e5e9ee}.canvas-wrap{position:relative;width:100%}.canvas-wrap img{display:block;width:100%;height:auto}
+#overlay{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}a{color:#164ba0}
+.detail{font-size:14px;color:#41536a}.error{color:#a51522}.meta{overflow-wrap:anywhere}[hidden]{display:none!important}:focus-visible{outline:3px solid #e8a012;outline-offset:3px}
+</style></head><body><main>
+<h1>Upload your PDF</h1>
+<p>Choose a PDF from your computer, open a page, and draw a box around the area you want to inspect.</p>
+<p class="detail">Local manual evidence tool. Files stay on this computer. Automatic OCR and alteration detection are upcoming features.</p>
+<section><h2>1 Choose your file</h2><form id="upload-form">
+<label for="pdf-file">PDF file up to 20 MB</label><input id="pdf-file" type="file" accept=".pdf,application/pdf" required>
+<button id="upload-button" type="submit">Upload and open PDF</button></form>
+<p id="status" role="status" aria-live="polite">No file uploaded yet.</p></section>
+<section id="document-panel" hidden><h2>2 Select a page and draw a box</h2>
+<p id="document-info" class="meta"></p><div class="controls"><label>Page <select id="page-number" aria-label="Page number"></select></label>
+<label>Page size <input id="zoom" type="range" min="50" max="150" step="10" value="100"> <output id="zoom-value">100%</output></label></div>
+<p class="detail">Drag across the page to select an area. Changing the page clears the selection.</p>
+<div class="canvas"><div id="canvas-wrap" class="canvas-wrap"><img id="page-image" alt="Your selected PDF page">
+<svg id="overlay" viewBox="0 0 1 1" preserveAspectRatio="none" role="img" aria-label="Draw a box on the page to select evidence">
+<rect id="selection" fill="rgba(190,20,35,0.08)" stroke="#be1423" stroke-width="2" vector-effect="non-scaling-stroke" hidden></rect>
+</svg></div></div><p id="selection-info" class="detail" aria-live="polite">Draw a box to select a region.</p>
+<h2>3 Describe and open your evidence</h2><label for="observation">What do you want to inspect</label>
+<textarea id="observation" maxlength="1000" placeholder="For example: I want to inspect the handwritten number in this area."></textarea>
+<button id="trace-button" type="button" disabled>Create evidence view</button>
+<p><a id="result-link" class="link-button" target="_blank" rel="noopener" hidden>Open your evidence view</a></p>
+</section>
+</main><script>
+const $=id=>document.getElementById(id);let current=null,box=null,start=null,busy=false,generation=0;
+function message(text,error=false){$('status').textContent=text;$('status').className=error?'error':'';}
+function clearSelection(){box=null;start=null;$('selection').setAttribute('hidden','');$('selection-info').textContent='Draw a box to select a region.';$('result-link').hidden=true;canTrace();}
+function canTrace(){$('trace-button').disabled=busy||!current||!box||start!==null||!$('observation').value.trim();}
+function setBusy(value){busy=value;$('upload-button').disabled=value;$('pdf-file').disabled=value;$('page-number').disabled=value;$('observation').disabled=value;canTrace();}
+function resetDocument(){generation++;current=null;clearSelection();$('observation').value='';$('document-panel').hidden=true;$('zoom').value='100';$('zoom-value').value='100%';$('canvas-wrap').style.width='100%';}
+async function jsonResponse(response){const data=await response.json();if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'The request could not be completed. Check your input.');return data;}
+async function loadPage(){const token=++generation;clearSelection();setBusy(true);message('Opening the selected page…');
+ const image=$('page-image');const page=Number($('page-number').value);const source=`/api/cases/${current.case_id}/pages/${page}`;
+ try{const response=await fetch(source);if(!response.ok){await jsonResponse(response);}const blob=await response.blob();if(token!==generation)return;
+  const url=URL.createObjectURL(blob);await new Promise((resolve,reject)=>{image.onload=()=>{URL.revokeObjectURL(url);resolve();};image.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('The page preview could not be opened.'));};image.src=url;});
+  if(token===generation){$('document-panel').hidden=false;message('Your PDF is open. Draw a box around the area to inspect.');}
+ }catch(error){if(token===generation){$('document-panel').hidden=true;message(error.message,true);}}
+ finally{if(token===generation)setBusy(false);}}
+$('pdf-file').addEventListener('change',()=>{resetDocument();message('File selected. Click Upload and open PDF.');});
+$('upload-form').addEventListener('submit',async event=>{event.preventDefault();const file=$('pdf-file').files[0];if(!file)return;
+ resetDocument();if(!file.name.toLowerCase().endsWith('.pdf')||file.size===0||file.size>20*1024*1024){message('Choose a nonempty PDF no larger than 20 MB.',true);return;}
+ setBusy(true);message('Uploading your PDF locally…');try{current=await jsonResponse(await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/pdf','X-Filename':encodeURIComponent(file.name),'X-Local-Upload':'1'},body:file}));
+ $('document-info').textContent=`${current.filename} · ${current.pages} page(s) · Document ${current.document_id}`;
+ $('page-number').replaceChildren();for(let page=1;page<=current.pages;page++){const option=document.createElement('option');option.value=page;option.textContent=page;$('page-number').appendChild(option);}await loadPage();
+ }catch(error){current=null;message(error.message,true);setBusy(false);}});
+$('page-number').addEventListener('change',loadPage);
+$('zoom').addEventListener('input',event=>{$('canvas-wrap').style.width=event.target.value+'%';$('zoom-value').value=event.target.value+'%';});
+function point(event){const bounds=$('overlay').getBoundingClientRect();return{x:Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width)),y:Math.max(0,Math.min(1,(event.clientY-bounds.top)/bounds.height))};}
+function draw(end){box=[Math.min(start.x,end.x),Math.min(start.y,end.y),Math.max(start.x,end.x),Math.max(start.y,end.y)];const rect=$('selection');rect.setAttribute('x',box[0]);rect.setAttribute('y',box[1]);rect.setAttribute('width',box[2]-box[0]);rect.setAttribute('height',box[3]-box[1]);rect.removeAttribute('hidden');}
+$('overlay').addEventListener('pointerdown',event=>{if(busy||!current||event.button!==0)return;event.preventDefault();$('result-link').hidden=true;start=point(event);$('overlay').setPointerCapture(event.pointerId);draw(start);canTrace();});
+$('overlay').addEventListener('pointermove',event=>{if(start)draw(point(event));});
+$('overlay').addEventListener('pointerup',event=>{if(!start)return;draw(point(event));start=null;if(box[2]-box[0]<.002||box[3]-box[1]<.002){clearSelection();return;}$('selection-info').textContent='Selected region: '+box.map(n=>n.toFixed(4)).join(', ');canTrace();});
+$('overlay').addEventListener('pointercancel',clearSelection);
+$('observation').addEventListener('input',()=>{$('result-link').hidden=true;canTrace();});
+$('trace-button').addEventListener('click',async()=>{if(!current||!box||busy)return;setBusy(true);$('result-link').hidden=true;message('Creating your manual evidence view…');
+ try{const result=await jsonResponse(await fetch(`/api/cases/${current.case_id}/trace`,{method:'POST',headers:{'Content-Type':'application/json','X-Local-Upload':'1'},body:JSON.stringify({page:Number($('page-number').value),box,observation:$('observation').value.trim()})}));$('result-link').href=result.viewer_url;$('result-link').hidden=false;message('Evidence view ready. Click Open your evidence view below.');}
+ catch(error){message(error.message,true);}finally{setBusy(false);}});
+</script></body></html>
