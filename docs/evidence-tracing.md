@@ -1,6 +1,6 @@
-# Foundation evidence tracing
+# Manual evidence tracing
 
-Phase 5 links a case to a finding, a verified document, a page, and a selected region on that page. The example is manually selected and clearly labelled. It demonstrates source tracing rather than automated OCR, alteration detection, or an authenticity decision.
+Evidence tracing links a case to a finding, a verified document, a page, and a selected region on that page. The example is manually selected and clearly labelled. It demonstrates source tracing rather than automated OCR, alteration detection, or an authenticity decision.
 
 ## Upload your own PDF
 
@@ -24,7 +24,7 @@ The screen accepts one unlocked PDF at a time, up to 20 MiB and 200 pages. Each 
 
 Uploaded copies, manifests, and traces are stored under `D:\Dataops\output\local-upload-viewer\cases` in this workspace, outside Git. The selected original file is not modified. The saved copy has a sanitized filename; the original chosen filename is retained in `upload.json`. The source bytes are fingerprinted and verified before rendering and serving. The server listens only on this computer and uses no external service.
 
-This is the Phase 5 manual evidence screen. It does not run OCR, automatically identify scribbles, compare several documents, or generate an investigation dossier. Drawing a box records your observation; it does not establish that a document was altered.
+This manual evidence screen does not run OCR, automatically identify scribbles, compare several documents, or generate an investigation dossier. Drawing a box records your observation; it does not establish that a document was altered.
 
 ## Open the fixed local A01 example
 
@@ -73,6 +73,4 @@ These files contain source-derived information and stay local until their sharin
 
 Install test dependencies with `python -m pip install -r requirements-dev.txt`, then run `python -m unittest discover -s tests -v`. The 62 tests cover the shared foundation plus upload validation, page rendering, manual trace creation, source hashes, request origin checks, storage boundaries, and changed-source handling. Trace checks also cover crops and marked pixels, page two, rotation, PDF crop settings, multiple resolutions, invalid IDs/pages/resolutions, overwrite prevention, escaped viewer text, and answer-key isolation.
 
-The upload screen was tested in a real headless browser with a chosen dataset PDF: upload, mouse-drawn region, observation, trace creation, and matching served-PDF SHA-256 all passed. A seven-page PDF allowed page two to be selected; changing the file cleared the old selection and result. An invalid PDF showed a friendly error. The run reported zero script errors, and screenshots of the empty screen and selected region were visually inspected.
-
-The A01 example was generated at 72 and 144 dpi. A headless browser checked alignment at 50, 100, and 150 percent in 1280-pixel and 600-pixel windows, verified the source button and local PDF link, and reported zero script errors. Marked-page, crop, desktop, and narrow-window images were also visually inspected. Source verification still reports three unchanged PDFs.
+For a manual check, upload a chosen PDF, select a region, and verify that the evidence view opens the same source page and crop. Repeat at different page sizes, switch pages in a multi-page PDF, and check that an invalid PDF shows a clear error.

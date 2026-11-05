@@ -1,6 +1,6 @@
 # Foundation processing contracts
 
-Phase 4 defines the records passed between future features and a synchronous coordinator that records their progress. A feature implementation plugs into the coordinator as an adapter: a function receiving `StepRequest` and returning `StepOutput`. The practice command uses clearly labelled simulated adapters.
+The processing layer defines the records passed between features and a synchronous coordinator that records their progress. A feature implementation plugs into the coordinator as an adapter: a function receiving `StepRequest` and returning `StepOutput`. The practice command uses clearly labelled simulated adapters.
 
 ## Step inputs and outputs
 
@@ -59,7 +59,7 @@ A review decision accepts a lead for further review or dismisses it. Neither sta
 
 The coordinator records history in memory. The `--json` option exports a progress snapshot when requested; it is not a persistent job database or a resume file. Adapters should use request document IDs as their analysis scope and return the shared models rather than changing the case in place.
 
-## Test Phase 4 on A01
+## Run processing practice on A01
 
 From the repository folder, run:
 

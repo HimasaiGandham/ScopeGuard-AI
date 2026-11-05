@@ -4,6 +4,18 @@
 !.env.example
 private-data/
 
+# Internal working notes and personal reference plans stay local
+/local-notes/
+/docs/*-audit.md
+/docs/*-audit-*.md
+/docs/*-review.md
+/docs/*-review-*.md
+/docs/phase*-*.md
+/docs/work-log.md
+/docs/foundation-handoff.md
+/docs/PS2_Branch_Phases_and_Verification_Plan.*
+/ps2-requirements.md
+
 # Python
 .venv/
 __pycache__/

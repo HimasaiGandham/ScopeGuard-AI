@@ -56,12 +56,8 @@ The [requirements checklist](docs/ps2-requirements.md) records the full prototyp
 
 The [foundation architecture](docs/architecture.md) explains how documents, findings, and source evidence will connect.
 
-The [project work record](docs/work-log.md) tracks completed phases, decisions, checks, and remaining work.
-
-The [foundation audit](docs/foundation-audit.md) records the checks and fixes from a review of phases 1–3.
-
-The [processing guide](docs/processing-contracts.md) explains Phase 4 and gives commands for testing successful steps, a failed step, and waiting human review.
+The [processing guide](docs/processing-contracts.md) defines processing inputs, outputs, statuses, errors, and practice commands.
 
 The [evidence tracing guide](docs/evidence-tracing.md) explains how to upload your own PDF, select a region, and verify its source link.
 
-The [foundation handoff](docs/foundation-handoff.md) gives fresh setup and test instructions, shared contracts, limits, and the next OCR branch's starting point.
+The [setup guide](docs/setup.md) gives isolated installation, execution, and test instructions.
