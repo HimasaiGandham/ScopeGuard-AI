@@ -33,10 +33,31 @@ If an application form and a supporting document show different dates of birth, 
 
 ## 🚧 Current status
 
-We have selected Problem Statement 2 and documented its requirements. **The application has not been built yet.** This README describes the intended project, not features that are already available.
+We have selected Problem Statement 2, documented its requirements, built the shared data model and local file tracking, and added a practice flow for processing steps and errors. **A local PDF upload screen is now available:** choose your own PDF, select a page, draw a box, and create an evidence view linked to the source.
 
-When a working version is ready, this page will include simple steps to run it and try the demo.
+This first screen uses your manual selection. Automatic text reading, discrepancy detection, comparison across documents, and the investigation report are still to be built.
+
+## 📤 Try your own PDF
+
+Open PowerShell in the project folder and run:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m docforensics.upload_app
+```
+
+Open [the local upload screen](http://127.0.0.1:8765/). Choose a PDF, click **Upload and open PDF**, select a page, drag a box around an area, add your observation, and click **Create evidence view**. Keep PowerShell running while using the screen.
+
+The PDF copy and generated evidence stay on your computer outside the repository. See the [evidence tracing guide](docs/evidence-tracing.md) for limits, storage, and testing instructions.
 
 ## 📚 More detail
 
 The [requirements checklist](docs/ps2-requirements.md) records the full prototype, demo, and submission expectations from the hackathon problem statement.
+
+The [foundation architecture](docs/architecture.md) explains how documents, findings, and source evidence will connect.
+
+The [processing guide](docs/processing-contracts.md) defines processing inputs, outputs, statuses, errors, and practice commands.
+
+The [evidence tracing guide](docs/evidence-tracing.md) explains how to upload your own PDF, select a region, and verify its source link.
+
+The [setup guide](docs/setup.md) gives isolated installation, execution, and test instructions.
