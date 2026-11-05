@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Create a document case</title><style>
+*{box-sizing:border-box}body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#f5f7fa;color:#172433}
+main{max-width:1200px;margin:auto;padding:28px}h1{font-size:30px;line-height:1.2}h2{font-size:22px}
+section{background:white;border:1px solid #cdd5df;border-radius:8px;padding:22px;margin:20px 0}
+button{background:#173f76;color:white;padding:11px 18px;border:0;border-radius:5px;cursor:pointer;font:inherit}
+button:disabled{opacity:.5;cursor:not-allowed}input{font:inherit;display:block;max-width:100%;margin:12px 0 18px}
+a{color:#164ba0}.detail{font-size:14px;color:#41536a}.error,.rejected{color:#a51522}.accepted{color:#18723c}.duplicate{color:#805600}
+.table-wrap{overflow:auto}table{width:100%;min-width:1040px;border-collapse:collapse;text-align:left}th,td{padding:12px;border-bottom:1px solid #d7dfe8;vertical-align:top;overflow-wrap:anywhere}th{background:#eef2f7}
+td:first-child{min-width:160px}td:nth-child(2){min-width:100px}td:nth-child(3){min-width:300px;max-width:340px}td:nth-child(4){min-width:220px}td:nth-child(5){min-width:220px}code{font-size:13px;overflow-wrap:anywhere}summary{cursor:pointer}ul{padding-left:20px}.meta{overflow-wrap:anywhere}
+[hidden]{display:none!important}:focus-visible{outline:3px solid #e8a012;outline-offset:3px}
+.scroll-help{display:none}@media(max-width:800px){.scroll-help{display:block}}
+</style></head><body><main>
+<h1>Create a document case</h1>
+<p>Choose several related documents. Each accepted file receives its own document ID and page IDs.</p>
+<p class="detail">Files stay on this computer. This step identifies and preserves documents; OCR and automatic analysis come later.</p>
+<p><a href="/">Open the single-PDF manual evidence tool</a></p>
+<section><h2>Choose your documents</h2><form id="case-form">
+<label for="case-files">PDF, PNG, or JPEG files. Up to 20 files, 20 MiB per file, 100 MiB combined.</label>
+<input id="case-files" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" required>
+<button id="create-case" type="submit">Upload files and create case</button></form>
+<p id="status" role="status" aria-live="polite">No case created yet.</p></section>
+<section id="case-panel" hidden><h2>Your case</h2><p id="case-id" class="meta"></p><p id="counts"></p>
+<p><a id="reopen">Reopen this case</a> · <a id="case-record" target="_blank" rel="noopener">View case record</a></p>
+<p><a id="extract-link">Read text and inspect extracted fields</a></p>
+<p class="detail scroll-help">Scroll the table sideways to see page IDs and file details.</p>
+<div class="table-wrap"><table><thead><tr><th>Filename</th><th>Status</th><th>Document ID</th><th>Pages</th><th>Details</th></tr></thead><tbody id="case-rows"></tbody></table></div>
+</section></main><script>
+const $=id=>document.getElementById(id);let busy=false;
+function message(text,error=false){$('status').textContent=text;$('status').className=error?'error':'';}
+function setBusy(value){busy=value;$('create-case').disabled=value;$('case-files').disabled=value;}
+async function readJSON(response){const data=await response.json();if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'The upload could not be completed.');return data;}
+function cell(row,text){const td=document.createElement('td');td.textContent=text;row.appendChild(td);return td;}
+function showCase(record){
+ const counts={accepted:0,rejected:0,duplicate:0};for(const upload of record.uploads)counts[upload.status]++;
+ $('case-id').textContent='Case '+record.case_id;
+ $('counts').textContent=`${counts.accepted} accepted · ${counts.duplicate} duplicate(s) skipped · ${counts.rejected} rejected`;
+ const endpoint='/api/ingestion/cases/'+encodeURIComponent(record.case_id);
+ $('extract-link').href='/extract?case='+encodeURIComponent(record.case_id);
+ $('reopen').href='/ingest?case='+encodeURIComponent(record.case_id);$('case-record').href=endpoint;$('case-rows').replaceChildren();
+ for(const upload of record.uploads){const row=document.createElement('tr');cell(row,upload.filename);cell(row,upload.status).className=upload.status;
+  const sourceDoc=record.documents.find(d=>d.document_id===upload.document_id);
+  cell(row,sourceDoc?sourceDoc.document_id:(upload.duplicate_of?'Same as '+upload.duplicate_of:'—'));
+  const pages=cell(row,sourceDoc?String(sourceDoc.page_count):'—');const detail=cell(row,'');
+  if(sourceDoc){const list=document.createElement('details');const label=document.createElement('summary');label.textContent='Show page IDs';list.appendChild(label);
+   const items=document.createElement('ul');for(const page of sourceDoc.pages){const item=document.createElement('li');item.textContent=`Page ${page.page_number}: ${page.page_id}`;items.appendChild(item);}list.appendChild(items);pages.appendChild(list);
+   const download=document.createElement('a');download.href=endpoint+'/documents/'+encodeURIComponent(sourceDoc.document_id)+'/original';download.textContent='Download original';detail.appendChild(download);
+   const hash=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Show fingerprint';hash.appendChild(summary);const code=document.createElement('code');code.textContent=sourceDoc.content_sha256;hash.appendChild(code);detail.appendChild(hash);
+  }else{detail.textContent=upload.error?upload.error.message:upload.message;}
+  $('case-rows').appendChild(row);
+ }
+ $('case-panel').hidden=false;history.replaceState(null,'','/ingest?case='+encodeURIComponent(record.case_id));
+ message(record.documents.length?'Case saved. Original bytes and page identities are ready.':'No files were accepted. Check the rejection messages and choose supported files.',!record.documents.length);
+}
+$('case-files').addEventListener('change',()=>{$('case-panel').hidden=true;message('Files selected. Click Upload files and create case.');});
+$('case-form').addEventListener('submit',async event=>{event.preventDefault();if(busy)return;
+ const files=Array.from($('case-files').files);$('case-panel').hidden=true;
+ if(!files.length||files.length>20){message('Choose between 1 and 20 files.',true);return;}
+ if(files.reduce((sum,file)=>sum+file.size,0)>100*1024*1024){message('The combined file size must not exceed 100 MiB.',true);return;}
+ const form=new FormData();for(const file of files)form.append('files',file);setBusy(true);message('Saving and identifying your documents locally…');
+ try{showCase(await readJSON(await fetch('/api/ingestion/cases',{method:'POST',headers:{'X-Local-Upload':'1'},body:form})));}
+ catch(error){message(error.message,true);}finally{setBusy(false);}
+});
+const existing=new URLSearchParams(location.search).get('case');
+if(existing){setBusy(true);message('Verifying the saved case…');fetch('/api/ingestion/cases/'+encodeURIComponent(existing)).then(readJSON).then(showCase).catch(error=>message(error.message,true)).finally(()=>setBusy(false));}
+</script></body></html>

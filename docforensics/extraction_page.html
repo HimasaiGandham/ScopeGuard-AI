@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Read document information</title><style>
+body{font:16px/1.5 system-ui;margin:24px;background:#f5f7fa;color:#172433}main{max-width:1100px;margin:auto}section{background:white;padding:20px;margin:18px 0;border:1px solid #ccd5df}button{padding:10px;margin:6px;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere}.canvas{overflow:auto}svg{width:100%;display:block}#error{color:#a51522}code{overflow-wrap:anywhere}summary{cursor:pointer}
+</style><main><h1>Read document information</h1><p>English printed text only. Every extracted value needs review. Unsupported layouts retain text but do not produce inferred fields.</p>
+<button id="run">Read this case</button><p id="status" role="status"></p><p><a id="saved" hidden>View saved extraction record</a></p><p id="error" role="alert"></p><div id="results"></div>
+<section id="source" hidden><h2>Selected source location</h2><p id="selected"></p><label>Page size <input id="zoom" type="range" min="50" max="150" value="100"></label><div class="canvas"><svg id="page" viewBox="0 0 1 1" preserveAspectRatio="xMinYMin meet"><image id="image" width="1" height="1"/><rect id="region" fill="none" stroke="red" stroke-width="3" vector-effect="non-scaling-stroke"/></svg></div></section></main>
+<script>
+const $=id=>document.getElementById(id),caseId=new URLSearchParams(location.search).get('case');let generation=0;
+function paragraph(parent,text){const p=document.createElement('p');p.textContent=text;parent.appendChild(p);return p;}
+async function source(field){$('source').hidden=true;const token=++generation,r=field.source.region,doc=field.source.document_id;
+ const response=await fetch(`/api/ingestion/cases/${encodeURIComponent(caseId)}/documents/${encodeURIComponent(doc)}/pages/${r.page_number}`);
+ if(!response.ok)throw new Error('The verified source cannot be displayed.');const blob=await response.blob(),url=URL.createObjectURL(blob),image=new Image();
+ try{await new Promise((ok,fail)=>{image.onload=ok;image.onerror=fail;image.src=url;});if(token!==generation){URL.revokeObjectURL(url);return;}
+ $('page').setAttribute('viewBox',`0 0 ${image.width} ${image.height}`);$('image').setAttribute('width',image.width);$('image').setAttribute('height',image.height);
+ // Keep the active object URL until the next source has loaded.
+ const old=$('image').getAttribute('href');$('image').setAttribute('href',url);if(old)URL.revokeObjectURL(old);
+ const rect=$('region');for(const [name,value]of Object.entries({x:r.x1*image.width,y:r.y1*image.height,width:(r.x2-r.x1)*image.width,height:(r.y2-r.y1)*image.height}))rect.setAttribute(name,value);
+ $('selected').textContent=`${field.name}: ${field.value} · ${doc} · Page ${r.page_number} · Confidence unavailable; review required`;$('source').hidden=false;$('source').scrollIntoView();
+ }catch(error){URL.revokeObjectURL(url);throw error;}}
+$('zoom').oninput=event=>{$('page').style.width=event.target.value+'%';};
+$('run').onclick=async()=>{$('run').disabled=true;$('error').textContent='';$('results').replaceChildren();$('source').hidden=true;generation++;$('status').textContent='Reading pages locally. Each page has a time limit; failed pages will be listed.';
+ try{if(!caseId)throw new Error('Open a saved case from the document upload screen first.');const response=await fetch(`/api/ingestion/cases/${encodeURIComponent(caseId)}/extract`,{method:'POST',headers:{'X-Local-Upload':'1'}});const result=await response.json();if(!response.ok)throw new Error(result.detail||'Extraction failed');
+ $('saved').href=`/api/ingestion/cases/${encodeURIComponent(caseId)}/extractions/${result.run_id}`;$('saved').hidden=false;
+ for(const upload of result.uploads||[]){if(upload.status!=='accepted')paragraph($('results'),`${upload.filename} · ${upload.status} · ${upload.error?upload.error.message:upload.message}`);}
+ for(const doc of result.documents){const section=document.createElement('section');paragraph(section,`${doc.filename} · ${doc.document_id} · ${doc.status}`);if(doc.error)paragraph(section,doc.error);
+ for(const page of doc.pages){paragraph(section,`Page ${page.page_number} · ${page.status} · ${page.method||'no text engine result'}`);if(page.error){paragraph(section,page.error);continue;}
+ paragraph(section,`${page.document_type} · ${page.layout}`);paragraph(section,page.warning);if(page.layout_warning)paragraph(section,page.layout_warning);
+ for(const field of page.fields){const button=document.createElement('button');button.textContent=`${field.name}: ${field.value} — review source`;button.onclick=()=>source(field).catch(error=>{$('error').textContent=error.message;});section.appendChild(button);}
+ paragraph(section,'Sections: '+(page.sections.join(', ')||'None recognized'));paragraph(section,'Supported label/value blocks: '+page.tables.length);
+ const details=document.createElement('details'),summary=document.createElement('summary'),text=document.createElement('pre');summary.textContent='Read page text';text.textContent=page.text;details.append(summary,text);section.appendChild(details);}
+ $('results').appendChild(section);} $('status').textContent='Finished. Check every value against its source; confidence scores are unavailable.';
+ }catch(error){$('error').textContent=error.message;$('status').textContent='Could not finish this request.';}finally{$('run').disabled=false;}};
+</script></html>
