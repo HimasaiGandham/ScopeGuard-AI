@@ -33,11 +33,11 @@ If an application form and a supporting document show different dates of birth, 
 
 ## 🚧 Current status
 
-We have selected Problem Statement 2, documented its requirements, built the shared data model and local file tracking, and added a practice flow for processing steps and errors. **A local PDF upload screen is now available:** choose your own PDF, select a page, draw a box, and create an evidence view linked to the source.
+**Multi-document case creation is available:** upload related PDFs, PNGs, and JPEGs together, see each file's acceptance status, and inspect its document ID, page IDs, and fingerprint. A separate manual PDF screen lets you draw an evidence region and open its source-linked view. Shared records, source verification, and processing contracts support these tools.
 
 This first screen uses your manual selection. Automatic text reading, discrepancy detection, comparison across documents, and the investigation report are still to be built.
 
-## 📤 Try your own PDF
+## 📤 Try your own documents
 
 Open PowerShell in the project folder and run:
 
@@ -46,9 +46,9 @@ python -m pip install -r requirements.txt
 python -m docforensics.upload_app
 ```
 
-Open [the local upload screen](http://127.0.0.1:8765/). Choose a PDF, click **Upload and open PDF**, select a page, drag a box around an area, add your observation, and click **Create evidence view**. Keep PowerShell running while using the screen.
+Open [the document case screen](http://127.0.0.1:8765/ingest). Choose related PDFs or images and click **Upload files and create case**. The table shows accepted files, skipped duplicates, and rejected files with clear reasons. Expand **Show page IDs** or **Show fingerprint** to inspect a file's identity. Use **Reopen this case** to return to the saved case. Keep PowerShell running while using the screen.
 
-The PDF copy and generated evidence stay on your computer outside the repository. See the [evidence tracing guide](docs/evidence-tracing.md) for limits, storage, and testing instructions.
+The originals are copied unchanged outside the repository. See the [ingestion guide](docs/ingestion.md) for limits, identity rules, storage, and API usage. The [manual evidence screen](http://127.0.0.1:8765/) remains available for selecting a region in a single PDF.
 
 ## 📚 More detail
 

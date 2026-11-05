@@ -71,6 +71,6 @@ These files contain source-derived information and stay local until their sharin
 
 ## Verification
 
-Install test dependencies with `python -m pip install -r requirements-dev.txt`, then run `python -m unittest discover -s tests -v`. The 62 tests cover the shared foundation plus upload validation, page rendering, manual trace creation, source hashes, request origin checks, storage boundaries, and changed-source handling. Trace checks also cover crops and marked pixels, page two, rotation, PDF crop settings, multiple resolutions, invalid IDs/pages/resolutions, overwrite prevention, escaped viewer text, and answer-key isolation.
+Install test dependencies with `python -m pip install -r requirements-dev.txt`, then run `python -m unittest discover -s tests -v`. The tests cover the shared foundation plus upload validation, page rendering, manual trace creation, source hashes, request origin checks, storage boundaries, and changed-source handling. Trace checks also cover crops and marked pixels, page two, rotation, PDF crop settings, multiple resolutions, invalid IDs/pages/resolutions, overwrite prevention, escaped viewer text, and answer-key isolation.
 
 For a manual check, upload a chosen PDF, select a region, and verify that the evidence view opens the same source page and crop. Repeat at different page sizes, switch pages in a multi-page PDF, and check that an invalid PDF shows a clear error.

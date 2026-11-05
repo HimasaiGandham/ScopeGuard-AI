@@ -1,4 +1,4 @@
-"""Local PDF upload and manual evidence selection for the foundation demo."""
+"""Local document ingestion and manual PDF evidence selection."""
 
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .manifest import build_manifest, load_verified_manifest, write_manifest
 from .models import SourceRegion
 from .trace import _viewer, create_evidence_trace, render_source_page
+from .ingestion import CaseStore
+from .ingestion_api import ingestion_router
 
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
@@ -132,8 +134,10 @@ class UploadStore:
 
 def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
     store = UploadStore(data_directory)
-    app = FastAPI(title="Local PDF evidence viewer", docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title="Local document workspace", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.store = store
+    app.state.case_store = CaseStore(data_directory)
+    app.include_router(ingestion_router(app.state.case_store))
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
 
     @app.middleware("http")
@@ -154,6 +158,10 @@ def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     def home():
         return (Path(__file__).with_name("upload_page.html")).read_text(encoding="utf-8")
+
+    @app.get("/ingest", response_class=HTMLResponse)
+    def ingestion_home():
+        return Path(__file__).with_name("ingestion_page.html").read_text(encoding="utf-8")
 
     @app.get("/api/health")
     def health():
