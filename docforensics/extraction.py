@@ -13,6 +13,7 @@ import pymupdf
 from PIL import Image, ImageOps
 
 from .models import EvidenceRef, ExtractedField, SourceRegion
+from .related_layouts import recognize_related
 
 LABELS = {"student name": "student_name", "student id": "student_id",
           "submission date": "submission_date", "course code": "course_code"}
@@ -62,6 +63,9 @@ def recognize(page: dict, document_id: str, page_number: int) -> dict:
         line["words"].sort(key=lambda w: w["box"][0])
         line["text"] = " ".join(w["text"] for w in line["words"])
     text = "\n".join(line["text"] for line in lines)
+    related = recognize_related(lines, document_id, page_number)
+    if related is not None:
+        return related
     normalized = " ".join(text.lower().split())
     supported = ("northfield learning institute" in normalized or "data quality audit" in normalized) and all(
         sum(line["text"].lower().strip().startswith(label) for line in lines) == 1 for label in LABELS)

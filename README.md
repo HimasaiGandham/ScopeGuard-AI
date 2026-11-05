@@ -35,7 +35,7 @@ If an application form and a supporting document show different dates of birth, 
 
 **Multi-document case creation is available:** upload related PDFs, PNGs, and JPEGs together, see each file's acceptance status, and inspect its document ID, page IDs, and fingerprint. A separate manual PDF screen lets you draw an evidence region and open its source-linked view. Shared records, source verification, and processing contracts support these tools.
 
-English printed text extraction is available for digital and scanned pages. The supported Northfield coursework layout produces labelled fields, sections, and recorded-value table entries. Select an extracted field to inspect its original page region. OCR confidence scores are unavailable, so values require human review. Discrepancy detection, comparison across documents, and the investigation report remain later work.
+English printed text extraction is available for digital and scanned pages. Supported coursework, registration, and enrollment-confirmation layouts produce source-linked fields. Contextual checks compare original and normalized values, flag internal conflicts/repetition and expected-but-unextracted fields, and compare identity/course fields across documents after reviewer confirmation. Select cited evidence to inspect its original page region. OCR confidence scores are unavailable, so values require human review. Visual forensics and the investigation dossier remain later work.
 
 ## 📤 Try your own documents
 
@@ -63,3 +63,5 @@ The [evidence tracing guide](docs/evidence-tracing.md) explains how to upload yo
 The [setup guide](docs/setup.md) gives isolated installation, execution, and test instructions.
 
 The [OCR guide](docs/ocr.md) explains local model setup, supported layouts, source highlights, measured extraction results, and limitations.
+
+The [contextual comparison guide](docs/contextual.md) explains supported comparisons, same-student/enrollment grouping, uncertainty, and evidence inspection.

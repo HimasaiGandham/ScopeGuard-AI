@@ -25,7 +25,7 @@ Tests generate synthetic PDFs and need no private dataset or evaluation answer k
 
 ## Supported behavior and contracts
 
-The application supports multi-document acceptance, digital text and local English OCR, supported coursework layout recognition, structured fields, and source inspection. Follow the [OCR guide](ocr.md) to install the English language model and read a saved case. Visual/contextual anomaly detection and dossiers remain future work. Practice commands still simulate the wider processing coordinator; the OCR screen runs the real text engine separately.
+The application supports multi-document acceptance, digital text and local English OCR, supported layout recognition, structured fields, source inspection, and contextual comparisons. Follow the [OCR guide](ocr.md) to read a saved case, then choose **Check contextual consistency** and follow the [contextual guide](contextual.md). Visual forensics and dossiers remain future work. Practice commands still simulate the wider processing coordinator; extraction and contextual screens run real processing separately.
 
 Source regions use 1-based pages and normalized coordinates from 0 to 1, starting at the displayed page's top-left corner. Extracted fields and findings must retain their source references. Analysis findings await human review, and ingestion preserves verified source identity. The synchronous coordinator keeps processing history in memory; persistence, automatic retries, and adapter deadlines require later implementations.
 
