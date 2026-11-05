@@ -64,6 +64,7 @@ The coordinator records history in memory. The `--json` option exports a progres
 From the repository folder, run:
 
 ```powershell
+python -m pip install -r requirements-dev.txt
 python -m unittest discover -s tests -v
 python -m docforensics.practice '..\output\pdf\ocr_assignment_dataset\manifests\A01.json' --scenario success
 python -m docforensics.practice '..\output\pdf\ocr_assignment_dataset\manifests\A01.json' --scenario ocr-failure

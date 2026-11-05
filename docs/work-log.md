@@ -136,16 +136,25 @@ An untracked root-level `ps2-requirements.md` is an exact duplicate of the track
 
 ---
 
-## 4 November 2026, 03:45 IST — Documentation & Workspace Preparation
+## 4 November 2026, 03:45 IST — personal reference preparation
 
-* **Branch:** `feature/foundation`
-* **Objective:** Converted binary `.docx` plan into human-readable Markdown format and established continuous timestamped progress logging.
-* **Files Affected:**
-  * Created: [`d:/Dataops/PS2_Branch_Phases_and_Verification_Plan.md`](file:///d:/Dataops/PS2_Branch_Phases_and_Verification_Plan.md)
-  * Created: [`docs/PS2_Branch_Phases_and_Verification_Plan.md`](file:///d:/Dataops/dataops-innovation-hackathon/docs/PS2_Branch_Phases_and_Verification_Plan.md)
-  * Updated: [`docs/work-log.md`](file:///d:/Dataops/dataops-innovation-hackathon/docs/work-log.md)
-* **Key Decisions & Rationale:**
-  * Opening `PS2_Branch_Phases_and_Verification_Plan.docx` directly in VS Code's text editor rendered raw binary characters (`PK...`). Generated full Markdown versions both in the workspace root and within the repository `docs/` folder for instant viewing and editing inside VS Code.
-  * Initiated real-time timestamped progress logging for all upcoming actions and test runs.
-* **Checks & Verification:** Verified that the 62 existing unit tests continue to pass and confirmed the Markdown rendering of all 7 branch phases and verification checklist.
-* **Limitations & Next Step:** Foundation Phase 6 (handoff: updating docs, final review, and preparing branch merge) remains next.
+Created Markdown copies of the personal branch plan for viewing in a text editor and recorded the 62-test baseline. The Word and Markdown plans remain personal reference material, excluded from the foundation submission. At that point, Phase 6 handoff was next.
+
+## 6 November 2026 — final foundation review before PR
+
+**Request and scope:** Rechecked all six foundation phases before proposing `feature/foundation` into `main`. Reviewed every foundation module, its tests, runtime/test dependencies, and the complete file difference against refreshed `origin/main`. No functional code defect was reproduced in this review. This verifies the foundation scope; it does not declare the later OCR, analysis, reviewer, or dossier branches complete.
+
+| Phase | Final acceptance evidence | Result |
+| --- | --- | --- |
+| 1: sample inventory | 15 readable, single-page, image-only PDFs; 15 matching evaluation rows; five groups of three; 15 distinct hashes | Pass |
+| 2: shared records | Model tests cover valid source links and rejection of invalid regions, pages, categories, duplicate IDs, mutable collections, and missing evidence | Pass |
+| 3: source tracking | Real A01 manifest verifies three unchanged PDFs; tests detect equal-size tampering and unsafe paths; all 15 source hashes match before and after acceptance checks | Pass |
+| 4: processing contracts | Real A01 simulations verify 12-step success, isolated A01-D02 OCR timeout with visual continuation and partial context, and pending review/dossier; no simulated analysis output or report is fabricated | Pass |
+| 5: evidence tracing | Matching normalized regions and source hashes at 72/144 dpi; browser upload, mouse selection, trace creation, seven-page input, page change, invalid-file rejection, and six viewport/zoom combinations pass with zero script errors | Pass |
+| 6: handoff | Fresh isolated dependency setup passed previously; isolated environment rerun passes all 62 tests, compilation, and dependency consistency; setup and contracts are documented | Pass |
+
+**Checks and evidence:** The final full suite passed 62 tests in 5.033 seconds. `compileall`, `pip check`, branch whitespace checks, and a merge-tree check against `origin/main` passed. Browser screenshots were regenerated and the upload/selection screen was visually inspected. Local acceptance details are saved under `../output/foundation-pr-review-20261106`; browser artifacts remain under `../tmp`. Evaluation labels were read only by the separate local inventory audit, never supplied to runtime processing.
+
+**Useful-content cleanup:** Added the missing test-dependency install command to the processing guide. Condensed redundant editor-preparation notes and removed machine-specific `file://` links from this log. Kept the shared code, tests, practice flow, and technical guides because they establish the foundation contracts and repeatable checks. Confirmed that no source PDF, answer key, generated image, log, personal plan, or removed Phase 4 review is tracked. Personal untracked files are left intact and excluded from the PR.
+
+**Merge ownership:** Prepare a PR targeting `main` for the user to test and merge. Keep `feature/foundation` until the merge is confirmed; branch deletion follows the merge rather than this review. Automatic OCR, multi-document processing, automatic discrepancy detection, and dossier generation remain later work.
