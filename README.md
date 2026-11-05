@@ -35,7 +35,7 @@ If an application form and a supporting document show different dates of birth, 
 
 **Multi-document case creation is available:** upload related PDFs, PNGs, and JPEGs together, see each file's acceptance status, and inspect its document ID, page IDs, and fingerprint. A separate manual PDF screen lets you draw an evidence region and open its source-linked view. Shared records, source verification, and processing contracts support these tools.
 
-This first screen uses your manual selection. Automatic text reading, discrepancy detection, comparison across documents, and the investigation report are still to be built.
+English printed text extraction is available for digital and scanned pages. The supported Northfield coursework layout produces labelled fields, sections, and recorded-value table entries. Select an extracted field to inspect its original page region. OCR confidence scores are unavailable, so values require human review. Discrepancy detection, comparison across documents, and the investigation report remain later work.
 
 ## 📤 Try your own documents
 
@@ -61,3 +61,5 @@ The [processing guide](docs/processing-contracts.md) defines processing inputs, 
 The [evidence tracing guide](docs/evidence-tracing.md) explains how to upload your own PDF, select a region, and verify its source link.
 
 The [setup guide](docs/setup.md) gives isolated installation, execution, and test instructions.
+
+The [OCR guide](docs/ocr.md) explains local model setup, supported layouts, source highlights, measured extraction results, and limitations.

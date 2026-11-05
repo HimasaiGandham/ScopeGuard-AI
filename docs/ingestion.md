@@ -1,6 +1,6 @@
 # Accepting and identifying documents
 
-The document case screen accepts related files together, preserves their original bytes, and records exactly which documents and pages belong to the case. It identifies file formats; document classification and OCR are later features.
+The document case screen accepts related files together, preserves their original bytes, and records exactly which documents and pages belong to the case. After creating a case, choose **Read text and inspect extracted fields** to run the [supported layout and OCR workflow](ocr.md).
 
 ## Create and reopen a case
 
@@ -13,7 +13,7 @@ Start the server using the [setup guide](setup.md), then open `/ingest` on its l
 5. Use **Download original** to retrieve the exact accepted bytes, or **View case record** to inspect the metadata.
 6. Save **Reopen this case** to return to the same case after a refresh or server restart. Keep the same data directory when restarting.
 
-Each submission creates a new case. The application does not append to or replace an earlier case. The single-PDF manual evidence screen remains a separate tool at `/`; this ingestion screen does not yet send a packet through OCR or forensic analysis.
+Each submission creates a new case. The application does not append to or replace an earlier case. The single-PDF manual evidence screen remains a separate tool at `/`. The extraction screen reads the saved packet without replacing its ingestion record or originals; forensic anomaly analysis remains later work.
 
 ## Supported files and limits
 

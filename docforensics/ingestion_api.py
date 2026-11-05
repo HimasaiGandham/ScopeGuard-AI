@@ -4,12 +4,71 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
+import io
+import os
+import json
+import re
+from uuid import uuid4
+from pathlib import Path
+from PIL import Image, ImageOps
+from .extraction import extract_case
+from .trace import render_source_page
 
 from .ingestion import CaseStore, IncomingFile, MAX_BATCH_BYTES, MAX_FILE_BYTES, MAX_FILES, SourceChangedError
 
 
 def ingestion_router(store: CaseStore) -> APIRouter:
     router = APIRouter(prefix="/api/ingestion/cases")
+
+    @router.post("/{case_id}/extract")
+    def extract(case_id: str):
+        try:
+            model = os.environ.get("OCR_TESSDATA", str(Path(__file__).resolve().parents[2] / "output" / "ocr-models"))
+            result = extract_case(store, case_id, tessdata=model)
+            run_id = uuid4().hex
+            result['run_id'] = run_id
+            directory = store.root / 'cases' / case_id / 'extractions'
+            directory.mkdir(exist_ok=True)
+            with (directory / (run_id + '.json')).open('x', encoding='utf-8') as stream:
+                json.dump(result, stream, ensure_ascii=False, indent=2)
+            return result
+        except FileNotFoundError as exc:
+            raise HTTPException(404, "Case not found") from exc
+        except SourceChangedError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except OSError as exc:
+            raise HTTPException(500, 'Extraction result could not be saved; originals are preserved.') from exc
+
+    @router.get('/{case_id}/extractions/{run_id}')
+    def extraction_record(case_id: str, run_id: str):
+        if not re.fullmatch(r'[0-9a-f]{32}', run_id):
+            raise HTTPException(404, 'Extraction not found')
+        try:
+            store.get_case(case_id)
+            return json.loads((store.root/'cases'/case_id/'extractions'/(run_id+'.json')).read_text(encoding='utf-8'))
+        except FileNotFoundError as exc:
+            raise HTTPException(404, 'Extraction not found') from exc
+        except (SourceChangedError, ValueError) as exc:
+            raise HTTPException(409, 'Saved result or source cannot be verified') from exc
+
+    @router.get("/{case_id}/documents/{document_id}/pages/{page}")
+    def page_image(case_id: str, document_id: str, page: int):
+        try:
+            metadata, content = store.read_original(case_id, document_id)
+            if not 1 <= page <= metadata["page_count"]:
+                raise HTTPException(422, "Invalid page")
+            if metadata["media_type"] == "application/pdf":
+                image = render_source_page(content, page)
+            else:
+                with Image.open(io.BytesIO(content)) as original:
+                    image = ImageOps.exif_transpose(original).convert("RGB")
+            output = io.BytesIO()
+            image.save(output, format="PNG")
+            return Response(output.getvalue(), media_type="image/png")
+        except FileNotFoundError as exc:
+            raise HTTPException(404, "Source not found") from exc
+        except SourceChangedError as exc:
+            raise HTTPException(409, str(exc)) from exc
 
     @router.post("")
     async def create_case(request: Request):

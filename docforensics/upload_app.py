@@ -163,6 +163,10 @@ def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
     def ingestion_home():
         return Path(__file__).with_name("ingestion_page.html").read_text(encoding="utf-8")
 
+    @app.get("/extract", response_class=HTMLResponse)
+    def extraction_home():
+        return Path(__file__).with_name("extraction_page.html").read_text(encoding="utf-8")
+
     @app.get("/api/health")
     def health():
         return {"status": "ready", "mode": "manual_evidence", "upload": True}
