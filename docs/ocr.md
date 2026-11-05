@@ -31,6 +31,8 @@ The supported demo family is the Northfield coursework form, identified from its
 
 Other layouts are marked `unsupported_layout` with type `unknown`. Their page text is retained, but semantic fields, sections, and tables are not guessed. This is not a general-purpose invoice, identity document, bank statement, or arbitrary-table parser.
 
+Two controlled related-document layouts are also supported: exact headings **Student registration** and **Enrollment confirmation**, with at least two recognized identity/course labels. They extract Student name, Student ID, Course code, and optional Date of birth. Repeated labelled rows retain separate source references for contextual checks. See the [contextual guide](contextual.md) for examples and comparison scope.
+
 ## Confidence and failure behavior
 
 The integrated engine does not expose word-level confidence through this extraction path. Confidence is therefore `null`, and every result displays **review required**. Digital text also has no assigned correctness score. No field is declared verified truth. Missing or unreadable values remain absent; recognition does not fill them from evaluation labels.

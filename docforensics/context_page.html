@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Compare document information</title>
+<style>body{font:16px/1.5 system-ui;margin:24px;background:#f5f7fa;color:#172433}main{max-width:1100px;margin:auto}section{padding:20px;margin:18px 0;background:white;border:1px solid #ccd5df}button{margin:5px;padding:10px;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere}.canvas{overflow:auto}svg{width:100%;display:block}#error{color:#a51522}code{overflow-wrap:anywhere}</style>
+<main><h1>Compare document information</h1><p>Findings are leads for review. OCR errors and legitimate revisions can explain differences; this tool does not conclude manipulation.</p>
+<label><input type="checkbox" id="related"> I confirm these documents concern the same student and enrollment. Compare their identity and course fields.</label><p>Leave unchecked to check each document internally only. Different enrollments or document versions can legitimately differ.</p>
+<button id="run">Check consistency</button><p id="status" role="status"></p><p id="error" role="alert"></p><div id="results"></div>
+<section id="source" hidden><h2>Evidence to inspect</h2><p id="selected"></p><label>Page size <input id="zoom" type="range" min="50" max="150" value="100"></label><div class="canvas"><svg id="page" viewBox="0 0 1 1"><image id="image"/><rect id="region" fill="none" stroke="red" stroke-width="3" vector-effect="non-scaling-stroke"/></svg></div></section></main>
+<script>
+const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),caseId=params.get('case'),runId=params.get('run');let generation=0,activeURL=null;
+function text(parent,value){const p=document.createElement('p');p.textContent=value;parent.appendChild(p);}
+async function showEvidence(evidence){$('source').hidden=true;const token=++generation,r=evidence.region;
+ const response=await fetch(`/api/ingestion/cases/${encodeURIComponent(caseId)}/documents/${encodeURIComponent(evidence.document_id)}/pages/${r.page_number}`);if(!response.ok)throw new Error('Verified source is unavailable');
+ const url=URL.createObjectURL(await response.blob()),image=new Image();try{await new Promise((ok,fail)=>{image.onload=ok;image.onerror=fail;image.src=url;});if(token!==generation){URL.revokeObjectURL(url);return;}
+ $('page').setAttribute('viewBox',`0 0 ${image.width} ${image.height}`);for(const [key,value]of Object.entries({href:url,width:image.width,height:image.height}))$('image').setAttribute(key,value);
+ for(const [key,value]of Object.entries({x:r.x1*image.width,y:r.y1*image.height,width:(r.x2-r.x1)*image.width,height:(r.y2-r.y1)*image.height}))$('region').setAttribute(key,value);
+ if(activeURL)URL.revokeObjectURL(activeURL);activeURL=url;$('selected').textContent=`${evidence.document_id} · Page ${r.page_number} · ${evidence.excerpt||'Review anchor'}`;$('source').hidden=false;$('source').scrollIntoView();
+ }catch(error){URL.revokeObjectURL(url);throw error;}}
+$('zoom').oninput=e=>{$('page').style.width=e.target.value+'%';};
+$('run').onclick=async()=>{$('run').disabled=true;$('related').disabled=true;$('results').replaceChildren();$('error').textContent='';$('source').hidden=true;generation++;$('status').textContent='Comparing source-linked observations…';
+ try{if(!caseId||!runId)throw new Error('Open contextual comparison from a completed extraction first.');const response=await fetch(`/api/ingestion/cases/${encodeURIComponent(caseId)}/context`,{method:'POST',headers:{'Content-Type':'application/json','X-Local-Upload':'1'},body:JSON.stringify({extraction_run_id:runId,same_entity:$('related').checked})});const result=await response.json();if(!response.ok)throw new Error(result.detail||'Comparison failed');
+ const saved=document.createElement('a');saved.href=`/api/ingestion/cases/${encodeURIComponent(caseId)}/analyses/${result.analysis_id}`;saved.textContent='View saved analysis record';$('results').appendChild(saved);
+ for(const warning of result.warnings)text($('results'),warning.message);
+ for(const item of result.findings){const section=document.createElement('section');section.dataset.kind=item.kind;text(section,item.finding.observation);text(section,item.finding.explanation);
+ for(const observed of item.observations)text(section,`${observed.name}: original ${JSON.stringify(observed.value)}; comparison ${JSON.stringify(observed.comparison.normalized)} · ${observed.source.document_id}, page ${observed.source.region.page_number}`);
+ for(const evidence of item.finding.evidence){const button=document.createElement('button');button.textContent=`Inspect ${(evidence.excerpt||'page review anchor').slice(0,80)} · ${evidence.document_id} page ${evidence.region.page_number}`;button.onclick=()=>showEvidence(evidence).catch(error=>{$('error').textContent=error.message;});section.appendChild(button);}$('results').appendChild(section);}
+ const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='All original and normalized values';details.appendChild(summary);for(const value of result.fields)text(details,`${value.field.name}: ${JSON.stringify(value.field.value)} → ${JSON.stringify(value.comparison.normalized)} · ${value.field.source.document_id}`);$('results').appendChild(details);
+ $('status').textContent=`${result.findings.length} review lead(s). Zero leads does not establish authenticity or completeness.`;
+ }catch(error){$('error').textContent=error.message;$('status').textContent='Comparison could not finish.';}finally{$('run').disabled=false;$('related').disabled=false;}};
+</script></html>

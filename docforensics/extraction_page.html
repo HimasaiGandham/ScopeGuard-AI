@@ -21,6 +21,7 @@ $('zoom').oninput=event=>{$('page').style.width=event.target.value+'%';};
 $('run').onclick=async()=>{$('run').disabled=true;$('error').textContent='';$('results').replaceChildren();$('source').hidden=true;generation++;$('status').textContent='Reading pages locally. Each page has a time limit; failed pages will be listed.';
  try{if(!caseId)throw new Error('Open a saved case from the document upload screen first.');const response=await fetch(`/api/ingestion/cases/${encodeURIComponent(caseId)}/extract`,{method:'POST',headers:{'X-Local-Upload':'1'}});const result=await response.json();if(!response.ok)throw new Error(result.detail||'Extraction failed');
  $('saved').href=`/api/ingestion/cases/${encodeURIComponent(caseId)}/extractions/${result.run_id}`;$('saved').hidden=false;
+ const compare=document.createElement('a');compare.href=`/context?case=${encodeURIComponent(caseId)}&run=${result.run_id}`;compare.textContent='Check contextual consistency';$('results').appendChild(compare);
  for(const upload of result.uploads||[]){if(upload.status!=='accepted')paragraph($('results'),`${upload.filename} · ${upload.status} · ${upload.error?upload.error.message:upload.message}`);}
  for(const doc of result.documents){const section=document.createElement('section');paragraph(section,`${doc.filename} · ${doc.document_id} · ${doc.status}`);if(doc.error)paragraph(section,doc.error);
  for(const page of doc.pages){paragraph(section,`Page ${page.page_number} · ${page.status} · ${page.method||'no text engine result'}`);if(page.error){paragraph(section,page.error);continue;}
