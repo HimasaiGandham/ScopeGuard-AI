@@ -35,7 +35,7 @@ If an application form and a supporting document show different dates of birth, 
 
 **Multi-document case creation is available:** upload related PDFs, PNGs, and JPEGs together, see each file's acceptance status, and inspect its document ID, page IDs, and fingerprint. A separate manual PDF screen lets you draw an evidence region and open its source-linked view. Shared records, source verification, and processing contracts support these tools.
 
-English printed text extraction is available for digital and scanned pages. Supported coursework, registration, and enrollment-confirmation layouts produce source-linked fields. Contextual checks compare original and normalized values, flag internal conflicts/repetition and expected-but-unextracted fields, and compare identity/course fields across documents after reviewer confirmation. Select cited evidence to inspect its original page region. OCR confidence scores are unavailable, so values require human review. Visual forensics and the investigation dossier remain later work.
+English printed text extraction is available for digital and scanned pages. Supported layouts produce source-linked fields, and contextual checks compare observed values with reviewer-confirmed document relationships. A focused visual check now locates blue ink near dark printed content and shows original page/crop evidence. All results require human review; OCR and visual confidence are uncalibrated. Other visual checks and the investigation dossier remain later work.
 
 ## 📤 Try your own documents
 
@@ -65,3 +65,5 @@ The [setup guide](docs/setup.md) gives isolated installation, execution, and tes
 The [OCR guide](docs/ocr.md) explains local model setup, supported layouts, source highlights, measured extraction results, and limitations.
 
 The [contextual comparison guide](docs/contextual.md) explains supported comparisons, same-student/enrollment grouping, uncertainty, and evidence inspection.
+
+The [visual inspection guide](docs/visual.md) explains the supported ink-overlap signal, evidence, measured misses, and false-alarm limitations.

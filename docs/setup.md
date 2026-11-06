@@ -25,7 +25,7 @@ Tests generate synthetic PDFs and need no private dataset or evaluation answer k
 
 ## Supported behavior and contracts
 
-The application supports multi-document acceptance, digital text and local English OCR, supported layout recognition, structured fields, source inspection, and contextual comparisons. Follow the [OCR guide](ocr.md) to read a saved case, then choose **Check contextual consistency** and follow the [contextual guide](contextual.md). Visual forensics and dossiers remain future work. Practice commands still simulate the wider processing coordinator; extraction and contextual screens run real processing separately.
+The application supports multi-document acceptance, digital text and local English OCR, supported layout recognition, structured fields, contextual comparisons, and a focused visual ink-overlap check. Follow the [OCR guide](ocr.md) for text or choose **Inspect visual marks** directly from a saved case and follow the [visual guide](visual.md). Visual inspection needs no OCR model. Additional visual methods and dossiers remain future work. Practice commands still simulate the wider coordinator; feature screens run their real processing separately.
 
 Source regions use 1-based pages and normalized coordinates from 0 to 1, starting at the displayed page's top-left corner. Extracted fields and findings must retain their source references. Analysis findings await human review, and ingestion preserves verified source identity. The synchronous coordinator keeps processing history in memory; persistence, automatic retries, and adapter deadlines require later implementations.
 

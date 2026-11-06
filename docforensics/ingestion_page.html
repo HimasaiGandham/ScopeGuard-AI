@@ -24,6 +24,7 @@ td:first-child{min-width:160px}td:nth-child(2){min-width:100px}td:nth-child(3){m
 <section id="case-panel" hidden><h2>Your case</h2><p id="case-id" class="meta"></p><p id="counts"></p>
 <p><a id="reopen">Reopen this case</a> · <a id="case-record" target="_blank" rel="noopener">View case record</a></p>
 <p><a id="extract-link">Read text and inspect extracted fields</a></p>
+<p><a id="visual-link">Inspect visual marks</a></p>
 <p class="detail scroll-help">Scroll the table sideways to see page IDs and file details.</p>
 <div class="table-wrap"><table><thead><tr><th>Filename</th><th>Status</th><th>Document ID</th><th>Pages</th><th>Details</th></tr></thead><tbody id="case-rows"></tbody></table></div>
 </section></main><script>
@@ -38,6 +39,7 @@ function showCase(record){
  $('counts').textContent=`${counts.accepted} accepted · ${counts.duplicate} duplicate(s) skipped · ${counts.rejected} rejected`;
  const endpoint='/api/ingestion/cases/'+encodeURIComponent(record.case_id);
  $('extract-link').href='/extract?case='+encodeURIComponent(record.case_id);
+ $('visual-link').href='/visual?case='+encodeURIComponent(record.case_id);
  $('reopen').href='/ingest?case='+encodeURIComponent(record.case_id);$('case-record').href=endpoint;$('case-rows').replaceChildren();
  for(const upload of record.uploads){const row=document.createElement('tr');cell(row,upload.filename);cell(row,upload.status).className=upload.status;
   const sourceDoc=record.documents.find(d=>d.document_id===upload.document_id);

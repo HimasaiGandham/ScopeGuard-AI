@@ -25,6 +25,7 @@ from .trace import _viewer, create_evidence_trace, render_source_page
 from .ingestion import CaseStore
 from .ingestion_api import ingestion_router
 from .context_api import context_router
+from .visual_api import visual_router
 
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
@@ -140,6 +141,7 @@ def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
     app.state.case_store = CaseStore(data_directory)
     app.include_router(ingestion_router(app.state.case_store))
     app.include_router(context_router(app.state.case_store))
+    app.include_router(visual_router(app.state.case_store))
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
 
     @app.middleware("http")
@@ -172,6 +174,10 @@ def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
     @app.get('/context', response_class=HTMLResponse)
     def contextual_home():
         return Path(__file__).with_name('context_page.html').read_text(encoding='utf-8')
+
+    @app.get('/visual',response_class=HTMLResponse)
+    def visual_home():
+        return Path(__file__).with_name('visual_page.html').read_text(encoding='utf-8')
 
     @app.get("/api/health")
     def health():
