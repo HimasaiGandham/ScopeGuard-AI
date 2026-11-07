@@ -4,6 +4,12 @@
 
 This project aims to help a person review a group of documents and spot details that may need a closer look. It will read information from the documents, compare related details, point to unusual areas, and explain what it found.
 
+## 📦 Hackathon submission
+
+Download the [PS2 handover bundle](https://github.com/HimasaiGandham/ScopeGuard-AI/releases/tag/ps2-submission-v1) and open `START-HERE.html` after extracting it. The bundle contains the tested source, synthetic demo dataset, sample dossier, architecture diagram, offline evidence walkthrough, and measured results. The release also offers the sample dossier as a separate download.
+
+The [submission checklist](docs/submission.md) maps all eight deliverables. Use the [setup guide](docs/setup.md) to run the prototype locally and the [five-minute walkthrough](docs/demo.md) for the live demo.
+
 ## 💡 Why this matters
 
 Imagine reviewing an application form, an identity document, and a supporting letter. A name or date may differ between them. A number may appear to have been changed. Checking every page by hand takes time, and a simple text reader may miss the connection between documents.
@@ -13,7 +19,7 @@ Our goal is to bring those clues together so a reviewer can investigate them mor
 ## 🧭 How the system works
 
 1. **Add documents.** A reviewer uploads several permitted sample documents for one case.
-2. **Read the information.** The system reads printed text, including text in scanned pages or images, and organizes useful details such as names, dates, and amounts.
+2. **Read the information.** The system reads printed text, including text in scanned pages or images, and organizes supported fields such as names, IDs, dates, and table values.
 3. **Compare the details.** It looks for missing or conflicting information within a document and across the group.
 4. **Look at the pages.** It highlights supported visual clues, such as blue ink crossing a printed field.
 5. **Show the evidence.** Each finding points back to the document and location that supports it.
