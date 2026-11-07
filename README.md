@@ -46,7 +46,7 @@ python -m pip install -r requirements.txt
 python -m docforensics.upload_app
 ```
 
-Open [the document case screen](http://127.0.0.1:8765/ingest). Choose related PDFs or images and click **Upload files and check for visual marks**. The table shows saved files, skipped identical copies, and rejection reasons. Check **Alteration check** for suspicious regions and select **Open reviewer workspace** for the full processing and review flow. Expand **Show page IDs** or **Show fingerprint** to inspect file identity. Use **Reopen this case** to return to the saved case. Keep PowerShell running while using the screen.
+Open [the document case screen](http://127.0.0.1:8765/ingest). Drop related PDFs or images into the upload area, or select **Choose files**. Check the selected filenames and click **Upload & check**. The table shows saved files, skipped identical copies, and rejection reasons. Check **Alteration check** for suspicious regions and select **Open reviewer workspace** for the full processing and review flow. Expand **Show page IDs** or **Show fingerprint** to inspect file identity. Use **Reopen this case** to return to the saved case. Keep PowerShell running while using the screen.
 
 The originals are copied unchanged outside the repository. See the [ingestion guide](docs/ingestion.md) for limits, identity rules, storage, and API usage. The [manual evidence screen](http://127.0.0.1:8765/) remains available for selecting a region in a single PDF.
 

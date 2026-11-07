@@ -6,8 +6,8 @@ The document case screen accepts related files together, preserves their origina
 
 Start the server using the [setup guide](setup.md), then open `/ingest` on its local address. For the default port this is [the document case screen](http://127.0.0.1:8765/ingest).
 
-1. Choose the related PDFs or images. You can select several files at once.
-2. Click **Upload files and check for visual marks**. The screen automatically runs the supported blue-ink/printed-content check and shows **Possible alteration — review required** when it finds a suspicious region. Inspect the linked source crop and open the reviewer workspace for full text, contextual, and visual review.
+1. Drag related PDFs or images into the upload area, or select **Choose files**. The selected filenames appear before you submit the packet.
+2. Click **Upload & check**. The screen automatically runs the supported blue-ink/printed-content check and shows **Possible alteration — review required** when it finds a suspicious region. Inspect the linked source crop and open the reviewer workspace for full text, contextual, and visual review.
 3. Inspect each file's status, document ID, page count, and rejection or duplicate message.
 4. Expand **Show page IDs** or **Show fingerprint** to inspect a document's recorded identity.
 5. Use **Download original** to retrieve the exact accepted bytes, or **View case record** to inspect the metadata.

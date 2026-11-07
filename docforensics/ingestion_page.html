@@ -1,38 +1,224 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Create a document case</title><style>
-*{box-sizing:border-box}body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#f5f7fa;color:#172433}
-main{max-width:1200px;margin:auto;padding:28px}h1{font-size:30px;line-height:1.2}h2{font-size:22px}
-section{background:white;border:1px solid #cdd5df;border-radius:8px;padding:22px;margin:20px 0}
-button{background:#173f76;color:white;padding:11px 18px;border:0;border-radius:5px;cursor:pointer;font:inherit}
-button:disabled{opacity:.5;cursor:not-allowed}input{font:inherit;display:block;max-width:100%;margin:12px 0 18px}
-a{color:#164ba0}.detail{font-size:14px;color:#41536a}.error,.rejected{color:#a51522}.accepted{color:#41536a}.duplicate{color:#805600}.warning{background:#fff4d5;padding:12px;border-left:4px solid #a36a00}
-.table-wrap{overflow:auto}table{width:100%;min-width:1040px;border-collapse:collapse;text-align:left}th,td{padding:12px;border-bottom:1px solid #d7dfe8;vertical-align:top;overflow-wrap:anywhere}th{background:#eef2f7}
-td:first-child{min-width:160px}td:nth-child(2){min-width:100px}td:nth-child(3){min-width:300px;max-width:340px}td:nth-child(4){min-width:220px}td:nth-child(5){min-width:220px}code{font-size:13px;overflow-wrap:anywhere}summary{cursor:pointer}ul{padding-left:20px}.meta{overflow-wrap:anywhere}
-[hidden]{display:none!important}:focus-visible{outline:3px solid #e8a012;outline-offset:3px}
-.scroll-help{display:none}@media(max-width:800px){.scroll-help{display:block}}
-</style></head><body><main>
-<h1>Create a document case</h1>
-<p>Choose several related documents. Each accepted file receives its own document ID and page IDs.</p>
-<p class="detail">Files stay on this computer. Uploading preserves the original and automatically checks for supported visual marks. Saving a file does not verify its contents or authenticity.</p>
-<p><a href="/">Open the single-PDF manual evidence tool</a></p>
-<section><h2>Choose your documents</h2><form id="case-form">
-<label for="case-files">PDF, PNG, or JPEG files. Up to 20 files, 20 MiB per file, 100 MiB combined.</label>
-<input id="case-files" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" required>
-<button id="create-case" type="submit">Upload files and check for visual marks</button></form>
-<p id="status" role="status" aria-live="polite">No case created yet.</p></section>
-<section id="case-panel" hidden><h2>Your case</h2><p id="case-id" class="meta"></p><p id="counts"></p>
-<div id="visual-summary" aria-live="polite"><h2>Alteration check</h2><p id="check-status" class="warning"></p><div id="check-results"></div><button id="retry-check" type="button" hidden>Run visual check again</button></div>
-<p><a id="reopen">Reopen this case</a> · <a id="case-record" target="_blank" rel="noopener">View case record</a></p>
-<p><a id="extract-link">Read text and inspect extracted fields</a></p>
-<p><a id="visual-link">Inspect visual marks</a></p>
-<p><a id="review-link">Open reviewer workspace</a></p>
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 "Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+
+h1,h2,h3,p{margin:0}
+h1,h2,h3{line-height:1.15}
+button{font:inherit;white-space:nowrap}
+
+svg{flex:none;display:block}
+a{color:inherit;text-decoration:none}
+
+.row{display:flex;align-items:center}
+.between{justify-content:space-between}
+
+.label{font-weight:750;font-size:11px;letter-spacing:.145em;text-transform:uppercase}
+
+.brand{display:flex;align-items:center;gap:11px;font-size:20px;font-weight:730;letter-spacing:-.45px}
+
+.mark{display:grid;place-items:center;width:39px;height:39px;border-radius:11px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;padding:12px 20px;border-radius:9px;font-weight:680;font-size:14px}
+
+.link{display:inline-flex;align-items:center;gap:8px;font-weight:650}
+
+.dot{height:8px;width:8px;flex:none;border-radius:50%;display:inline-block}
+
+.status{display:flex;align-items:center;gap:8px;font-weight:650;font-size:13px}
+
+.wrap{width:min(1232px,calc(100% - 48px));margin:0 auto}
+.mast{height:79px}
+.mast .wrap{height:100%}
+.tools{gap:27px}
+.tools .link{font-size:14px}
+
+
+body{background:#f5f8f5;color:#18342f}
+.mast{border-bottom:1px solid #dbe6df;background:#fbfdfb}
+
+.mark{background:#174c43;color:#fff}
+.mast .link{color:#355952}
+
+.mast .status{padding:7px 12px;border-radius:18px;background:#e5f1e9;color:#215846}
+.dot{background:#368263}
+
+.hero{padding:48px 0 31px}
+.hero .label{color:#337265;display:flex;align-items:center;gap:10px}
+
+.hero .label:before{content:"";display:block;width:22px;height:2px;background:#62a28e}
+
+h1{font-size:56px;letter-spacing:-2.7px;margin:12px 0 10px}
+.hero p{font-size:18px;color:#4b655e}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.91fr) minmax(0,1fr);gap:28px;align-items:start}
+
+.upload{background:#fff;border:1px solid #dce7df;border-radius:20px;padding:26px 28px;box-shadow:0 10px 26px #1c503809}
+
+.upload h2,.guide h2{font-size:25px;letter-spacing:-.5px}
+.upload-head p{margin-top:5px;color:#506960}
+
+.zone{min-height:235px;text-align:center;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:22px 0 17px;border:1.5px dashed #9bbfae;border-radius:14px;background:#eef7f0}
+
+.stack{width:79px;height:64px;position:relative;margin-bottom:6px}
+
+.sheet{width:39px;height:49px;border-radius:8px;position:absolute;border:1px solid #a6cbb7;background:#dbede0}
+
+.a{left:10px;top:11px;transform:rotate(-14deg)}
+.b{left:27px;top:9px;transform:rotate(13deg)}
+
+.c{display:grid;place-items:center;left:21px;top:5px;color:#1e6c5d;background:#fff;border-color:#bdd9c9;box-shadow:0 4px 10px #2357461a}
+
+.zone h3{font-size:20px}
+.zone p{font-size:14px;color:#506960;margin:4px 0 12px}
+
+.choose{background:#1d6658;color:#fff}
+.limits{display:flex;align-items:center;gap:9px;color:#4e655b;font-size:13px}
+
+.upload-bottom{border-top:1px solid #e5ece6;margin-top:19px;padding-top:17px}
+
+.upload-bottom span{font-size:14px;color:#51685f}
+.next{background:#1d6658;color:#fff}
+
+.guide{padding:27px 26px 24px;background:#e9f0e9;border:1px solid #d5e1d8;border-radius:20px}
+
+.guide .label{color:#477266}
+.guide h2{margin:8px 0 23px}
+
+.step{display:grid;grid-template-columns:35px 1fr;gap:12px;align-items:start;margin-bottom:20px}
+
+.step:last-child{margin-bottom:0}
+.number{background:#d7e7dc;color:#245448;width:33px;height:33px;border-radius:50%;display:grid;place-items:center;font-weight:750;font-size:13px}
+
+.step:nth-child(3) .number{background:#25594c;color:#fff}
+.step h3{font-size:16px;margin:2px 0 3px}
+.step p{color:#4b655c;font-size:14px}
+
+.privacy{margin-top:17px;display:flex;align-items:start;gap:11px;padding:15px 17px;color:#3d6257;font-size:13px}
+
+.privacy strong{font-size:14px;color:#22463d}
+.foot{margin-top:31px;padding:15px 0;border-top:1px solid #dae6de;color:#526b61;font-size:13px}
+
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid #bd7815; outline-offset: 3px; }
+button { cursor: pointer; }
+.btn:hover:not(:disabled) { background: #174c43; }
+.btn:disabled { background: #e5ece7; color: #496256; cursor: not-allowed; }
+.tools a:hover { text-decoration: underline; }
+.zone.dragging { border-color: #1d6658; background: #dceee2; }
+.limits { align-items: flex-start; }
+.limits svg { margin-top: 2px; }
+.selected-files { margin: 14px 0 0; max-height: 136px; overflow: auto; border-radius: 9px; padding: 8px 14px 8px 31px; background: #f2f7f3; color: #355952; font-size: 14px; overflow-wrap: anywhere; }
+#status { text-align: right; }
+#case-panel { margin: 8px 0 30px; scroll-margin-top: 18px; }
+#case-panel p { margin: 8px 0; }
+#case-panel a { color: #1d6658; text-decoration: underline; }
+#visual-summary { margin: 20px 0; }
+.case-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; margin: 16px 0; }
+#case-panel #review-link { display: inline-block; padding: 9px 13px; border-radius: 8px; background: #1d6658; color: #fff; font-weight: 650; text-decoration: none; }
+#case-panel #review-link:hover { background: #174c43; }
+.detail, .accepted { color: #415b52; }
+.detail { font-size: 14px; }
+.error, .rejected { color: #a51522; }
+.duplicate { color: #805600; }
+.warning { padding: 12px; border-left: 4px solid #a36a00; background: #fff4d5; }
+.table-wrap { overflow: auto; }
+table { width: 100%; min-width: 980px; border-collapse: collapse; text-align: left; }
+th, td { padding: 12px; border-bottom: 1px solid #dce7df; vertical-align: top; overflow-wrap: anywhere; }
+th { background: #edf4ef; }
+td:first-child { min-width: 155px; }
+td:nth-child(3) { min-width: 245px; max-width: 300px; }
+td:nth-child(4), td:nth-child(5) { min-width: 175px; }
+code { font-size: 13px; overflow-wrap: anywhere; }
+summary { cursor: pointer; }
+.meta { overflow-wrap: anywhere; }
+.scroll-help { display: none; }
+@media (max-width: 1060px) { .scroll-help { display: block; } }
+@media (max-width: 760px) {
+ .wrap { width: calc(100% - 32px); }
+ .mast { height: auto; }
+ .mast .wrap { min-height: 78px; padding-block: 12px; flex-wrap: wrap; gap: 10px; }
+ .tools { gap: 14px; flex-wrap: wrap; }
+ .hero { padding: 30px 0 22px; }
+ .hero h1 { font-size: clamp(32px, 6vw, 46px); }
+ .hero p { font-size: 16px; }
+ .grid { grid-template-columns: 1fr; gap: 18px; }
+ .upload, .guide { padding: 20px; }
+ .privacy { margin-top: 8px; padding-inline: 5px; }
+ .foot { margin-top: 20px; gap: 12px; }
+}
+@media (max-width: 390px) {
+ .upload-bottom { align-items: flex-start; flex-direction: column; gap: 10px; }
+}
+</style></head><body>
+<header class="mast"><div class="wrap row between"><div class="brand"><span class="mark"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-3.5 7-10V5l-7-3-7 3v7c0 6.5 7 10 7 10Z"/><path d="m9 12 2 2 4-4"/></svg></span>ScopeGuard AI</div>
+<div class="tools row"><a class="link" href="/">Manual evidence tool <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9m0-9H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></svg></a><div class="status"><span class="dot"></span>Local workspace</div></div></div></header>
+<main class="wrap">
+<div class="hero"><div class="label">New investigation</div>
+<h1>Create a document case</h1><p>Upload related files to inspect them together.</p></div>
+<div class="grid">
+<section class="upload" aria-labelledby="upload-title">
+<div class="upload-head"><h2 id="upload-title">Add documents</h2><p>Each saved file gets its own document ID and page IDs.</p></div>
+<form id="case-form">
+<div class="zone" id="drop-zone"><div class="stack" aria-hidden="true"><span class="sheet a"></span><span class="sheet b"></span><span class="sheet c"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg></span></div>
+<h3>Drop your files here</h3><p>Or select them from your computer.</p><input id="case-files" type="file" aria-label="Choose related documents" multiple accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" hidden>
+<button class="btn choose" id="choose-files" type="button" aria-describedby="file-limits"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg> Choose files</button></div>
+<div class="limits" id="file-limits"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg> PDF, PNG, JPEG · Up to 20 files · 20 MiB per file · 100 MiB total</div>
+<ul class="selected-files" id="selected-files" aria-label="Selected files" hidden></ul>
+<div class="upload-bottom row between"><span id="selection-count">No files selected</span><button class="btn next" id="create-case" type="submit" disabled>Upload &amp; check <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></button></div>
+</form></section>
+<aside>
+<section class="guide" aria-labelledby="guide-title"><div class="label">Case workflow</div>
+<h2 id="guide-title">From files to findings</h2>
+<div class="step"><span class="number">01</span><div><h3>Add related files</h3><p>Group documents that belong to the same case.</p></div></div>
+<div class="step"><span class="number">02</span><div><h3>Check for visual marks</h3><p>The app flags supported marks for you to inspect.</p></div></div>
+<div class="step"><span class="number">03</span><div><h3>Review and export</h3><p>Inspect the evidence and download a dossier after review.</p></div></div></section>
+<div class="privacy"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 4v3"/></svg><p><strong>Your files stay on this computer.</strong><br>Originals are preserved. Authenticity requires separate verification.</p></div></aside></div>
+<div class="foot row between"><span>Document investigations</span><p id="status" role="status">No case created yet.</p></div>
+<section id="case-panel" class="upload" aria-labelledby="case-title" hidden><h2 id="case-title" tabindex="-1">Your case</h2><p id="case-id" class="meta"></p><p id="counts"></p>
+<div id="visual-summary" aria-live="polite"><h2>Alteration check</h2><p id="check-status" class="warning"></p><div id="check-results"></div><button class="btn choose" id="retry-check" type="button" hidden>Run visual check again</button></div>
+<div class="case-actions">
+  <a id="review-link">Open reviewer workspace</a>
+  <a id="extract-link">Read text and inspect extracted fields</a>
+  <a id="visual-link">Inspect visual marks</a>
+  <a id="reopen">Reopen this case</a>
+  <a id="case-record" target="_blank" rel="noopener">View case record</a>
+</div>
 <p class="detail scroll-help">Scroll the table sideways to see page IDs and file details.</p>
 <div class="table-wrap"><table><thead><tr><th>Filename</th><th>Storage status (not authenticity)</th><th>Document ID</th><th>Pages</th><th>Details</th></tr></thead><tbody id="case-rows"></tbody></table></div>
 </section></main><script>
 const $=id=>document.getElementById(id);let busy=false,activeCase=null;
 function message(text,error=false){$('status').textContent=text;$('status').className=error?'error':'';}
-function setBusy(value){busy=value;$('create-case').disabled=value;$('case-files').disabled=value;$('retry-check').disabled=value;}
+function setBusy(value){
+ busy=value;
+ $('create-case').disabled=value||!$('case-files').files.length;
+ $('choose-files').disabled=value;
+ $('case-files').disabled=value;
+ $('retry-check').disabled=value;
+ $('case-form').setAttribute('aria-busy',String(value));
+}
+function selectionChanged(){
+ const files=Array.from($('case-files').files);
+ const list=$('selected-files');
+ list.replaceChildren();
+ for(const file of files.slice(0,20)){
+  const item=document.createElement('li');
+  item.textContent=file.name;
+  list.appendChild(item);
+ }
+ if(files.length>20){
+  const item=document.createElement('li');
+  item.textContent=`${files.length-20} more. Choose up to 20 files per case.`;
+  list.appendChild(item);
+ }
+ list.hidden=!files.length;
+ $('selection-count').textContent=files.length?`${files.length} file${files.length===1?'':'s'} selected`:'No files selected';
+ if(files.length){activeCase=null;$('case-panel').hidden=true;}
+ setBusy(busy);
+ if(files.length)message('Files selected. Choose Upload & check to create the case.');
+ else if(!activeCase)message('No case created yet.');
+}
 async function readJSON(response){const data=await response.json();if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'The upload could not be completed.');return data;}
 function cell(row,text){const td=document.createElement('td');td.textContent=text;row.appendChild(td);return td;}
 function paragraph(parent,text,cls=''){const p=document.createElement('p');p.textContent=text;p.className=cls;parent.appendChild(p);return p;}
@@ -90,14 +276,41 @@ async function showCase(record){activeCase=record;
  if(record.documents.length)await checkVisual(record);
  else{$('visual-summary').hidden=true;message('No files were accepted. Check the rejection messages and choose supported files.',true);}
 }
-$('case-files').addEventListener('change',()=>{activeCase=null;$('case-panel').hidden=true;message('Files selected. Upload to save them and check for supported visual marks.');});
+$('choose-files').addEventListener('click',()=>$('case-files').click());
+$('case-files').addEventListener('change',selectionChanged);
+const dropZone=$('drop-zone');
+const carriesFiles=event=>event.dataTransfer?.types.includes('Files');
+window.addEventListener('dragover',event=>{if(carriesFiles(event))event.preventDefault();});
+window.addEventListener('drop',event=>{if(carriesFiles(event))event.preventDefault();});
+dropZone.addEventListener('dragover',event=>{
+ if(!carriesFiles(event))return;
+ event.preventDefault();
+ event.dataTransfer.dropEffect=busy?'none':'copy';
+ dropZone.classList.toggle('dragging',!busy);
+});
+dropZone.addEventListener('dragleave',event=>{
+ if(!dropZone.contains(event.relatedTarget))dropZone.classList.remove('dragging');
+});
+dropZone.addEventListener('drop',event=>{
+ dropZone.classList.remove('dragging');
+ if(!carriesFiles(event))return;
+ event.preventDefault();
+ if(busy||!event.dataTransfer.files.length)return;
+ $('case-files').files=event.dataTransfer.files;
+ selectionChanged();
+});
 $('retry-check').onclick=async()=>{if(busy||!activeCase)return;setBusy(true);try{await checkVisual(activeCase,true);}finally{setBusy(false);}};
 $('case-form').addEventListener('submit',async event=>{event.preventDefault();if(busy)return;
  const files=Array.from($('case-files').files);$('case-panel').hidden=true;
  if(!files.length||files.length>20){message('Choose between 1 and 20 files.',true);return;}
  if(files.reduce((sum,file)=>sum+file.size,0)>100*1024*1024){message('The combined file size must not exceed 100 MiB.',true);return;}
  const form=new FormData();for(const file of files)form.append('files',file);setBusy(true);message('Saving and identifying your documents locally…');
- try{$('visual-summary').hidden=false;await showCase(await readJSON(await fetch('/api/ingestion/cases',{method:'POST',headers:{'X-Local-Upload':'1'},body:form})));}
+ try{
+  $('visual-summary').hidden=false;
+  await showCase(await readJSON(await fetch('/api/ingestion/cases',{method:'POST',headers:{'X-Local-Upload':'1'},body:form})));
+  $('case-panel').scrollIntoView({block:'start'});
+  $('case-title').focus({preventScroll:true});
+ }
  catch(error){message(error.message,true);}finally{setBusy(false);}
 });
 const existing=new URLSearchParams(location.search).get('case');
