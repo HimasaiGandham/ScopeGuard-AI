@@ -6,14 +6,18 @@
 <section><h2>Extracted information</h2><p class="warning">Confidence may be unavailable. Compare each value with the original page before using it.</p><div id="fields"></div></section>
 <section><h2>Findings and human review</h2><label>Your reviewer name <input id="reviewer" maxlength="100" autocomplete="name"></label><div id="findings"></div></section>
 <section id="source" hidden><h2>Original evidence</h2><p id="source-label"></p><label>Page size <input id="zoom" type="range" min="50" max="150" value="100"></label><div class="canvas"><svg id="page" viewBox="0 0 1 1"><image id="image"/><rect id="region" fill="none" stroke="red" stroke-width="3" vector-effect="non-scaling-stroke"/></svg></div><img id="crop" alt="Verified source crop" hidden></section>
-<section><h2>Dossier request</h2><p>PDF dossier export is not available yet. You can record a request for a packet after reviewing all findings in the selected runs.</p><label><input id="ack" type="checkbox"> I understand the selected results may be incomplete or uncertain.</label><p><button id="request">Record dossier request</button></p><p id="request-status" role="status"></p></section></main>
+<section><h2>Investigation dossier</h2><p>Review every finding in the selected runs, then generate a PDF of those results and decisions. Each export is a saved snapshot.</p><label><input id="ack" type="checkbox"> I understand the selected results may be incomplete or uncertain.</label><p><button id="request">Generate PDF dossier</button></p><p id="request-status" role="status"></p><ul id="dossiers"></ul></section></main>
 <script>
 const $=id=>document.getElementById(id),caseId=new URLSearchParams(location.search).get('case'),base='/api/ingestion/cases/'+encodeURIComponent(caseId||'');let workspace=null,selected={},views={},busy=false,generation=0,sourceGeneration=0,activeURL=null;
 function text(parent,value,cls=''){const p=document.createElement('p');p.textContent=value;p.className=cls;parent.appendChild(p);return p;}
 async function api(path,body){const response=await fetch(base+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Local-Upload':'1'},body:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw new Error(typeof result.detail==='string'?result.detail:'Check the selected values and required fields.');return result;}
 function message(error){$('error').textContent=error.message||String(error);}
 function setBusy(value){busy=value;if(value)$('error').textContent='';for(const el of document.querySelectorAll('button,select,textarea,#related'))el.disabled=value||el.dataset.blocked==='true';if(workspace&&!workspace.case.documents.length)$('process').disabled=true;updateRequest();}
-function updateRequest(){const items=['context','visual'].flatMap(k=>(views[k]?.report.findings||[]).map(i=>[k,i.finding.finding_id]));$('request').disabled=busy||!selected.extraction||!selected.context||!selected.visual||items.some(([k,id])=>!views[k].review_states[id]||views[k].blocked[id])||!$('ack').checked||!$('reviewer').value.trim();}
+function updateRequest(){
+ const ready=['extraction','context','visual'].every(kind=>selected[kind]&&views[kind]);
+ const items=['context','visual'].flatMap(kind=>(views[kind]?.report.findings||[]).map(item=>[kind,item.finding.finding_id]));
+ $('request').disabled=busy||!ready||items.some(([kind,id])=>!views[kind].review_states[id]||views[kind].blocked[id])||!$('ack').checked||!$('reviewer').value.trim();
+}
 function stage(name,status){const p=document.createElement('p');p.textContent=name+': '+status;$('stages').appendChild(p);return p;}
 async function evidence(source,visualPath=null){$('error').textContent='';$('source').hidden=true;$('crop').hidden=true;const token=++sourceGeneration,r=source.region;
  const path=visualPath?visualPath+'/page':`/documents/${encodeURIComponent(source.document_id)}/pages/${r.page_number}`;
@@ -46,8 +50,17 @@ function renderResults(){
 async function loadSelected(){const token=++generation,next={};views={};$('fields').replaceChildren();$('findings').replaceChildren();$('source').hidden=true;sourceGeneration++;updateRequest();for(const kind of ['extraction','context','visual'])if(selected[kind])next[kind]=await api(`/review-run/${kind}/${selected[kind]}`);if(token!==generation)return;
  if(next.context&&next.context.report.extraction_run_id!==selected.extraction){delete selected.context;delete next.context;const menu=$('selectors').querySelector('select[aria-label="context saved run"]');if(menu)menu.value='';message(new Error('Context results belong to a different extraction; select matching runs or process this case again.'));}
  views=next;workspace.reviews=(await api('/workspace')).reviews;renderResults();}
+function showDossiers(){
+ $('dossiers').replaceChildren();
+ for(const dossier of workspace.dossiers){
+  const item=document.createElement('li'),link=document.createElement('a');
+  link.href=base+'/dossiers/'+encodeURIComponent(dossier.dossier_id);
+  link.textContent='Download PDF dossier · '+new Date(dossier.created_at).toLocaleString()+' · '+dossier.dossier_id.slice(0,8);
+  item.appendChild(link);$('dossiers').appendChild(item);
+ }
+}
 async function reload(preferLatest=true){workspace=await api('/workspace');$('case-title').textContent='Case '+workspace.case.case_id;$('documents').replaceChildren();
- if(workspace.dossier_requests.length)$('request-status').textContent='Latest recorded request (may refer to earlier results): '+workspace.dossier_requests[0].message+' Request ID '+workspace.dossier_requests[0].request_id;
+ showDossiers();
  for(const doc of workspace.case.documents)text($('documents'),`${doc.filename} · ${doc.document_id} · ${doc.page_count} page(s)`);
  $('upload-status').textContent=workspace.case.uploads.map(u=>`${u.filename}: ${u.status}${u.error?' — '+u.error.message:''}`).join(' | ');
  $('selectors').replaceChildren();for(const kind of ['extraction','context','visual']){const label=document.createElement('label');label.textContent=kind+' saved run ';const select=document.createElement('select');select.setAttribute('aria-label',kind+' saved run');const empty=document.createElement('option');empty.value='';empty.textContent='Not selected';select.appendChild(empty);for(const run of workspace.runs[kind]){const option=document.createElement('option');option.value=run;option.textContent=run;select.appendChild(option);}selected[kind]=workspace.runs[kind].includes(selected[kind])?selected[kind]:(preferLatest?workspace.runs[kind][0]:'')||'';select.disabled=busy;select.value=selected[kind];select.onchange=()=>{selected[kind]=select.value;setBusy(true);loadSelected().catch(message).finally(()=>setBusy(false));};label.appendChild(select);$('selectors').appendChild(label);}await loadSelected();$('process').disabled=!workspace.case.documents.length;}
@@ -58,6 +71,15 @@ $('process').onclick=async()=>{setBusy(true);$('ack').checked=false;$('error').t
  await reload(false);$('status').textContent='Processing finished. Inspect document statuses, coverage warnings, and sources; results may be partial.';
  }catch(error){message(error);}finally{setBusy(false);}};
 $('reload').onclick=()=>{setBusy(true);reload().catch(message).finally(()=>setBusy(false));};$('zoom').oninput=e=>{$('page').style.width=e.target.value+'%';};$('reviewer').oninput=updateRequest;$('ack').onchange=updateRequest;
-$('request').onclick=async()=>{setBusy(true);try{const result=await api('/dossier-requests',{...selected,reviewer:$('reviewer').value.trim(),acknowledge:$('ack').checked});$('request-status').textContent=result.message+' Request ID '+result.request_id;}catch(error){message(error);}finally{setBusy(false);}};
+$('request').onclick=async()=>{
+ setBusy(true);$('request-status').textContent='Generating PDF from the selected results…';
+ try{
+  const dossier=await api('/dossiers',{...selected,reviewer:$('reviewer').value.trim(),acknowledge:$('ack').checked});
+  workspace.dossiers=[dossier,...workspace.dossiers].slice(0,50);
+  showDossiers();
+  $('request-status').textContent='PDF dossier saved. Download it below.';
+ }catch(error){$('request-status').textContent='PDF generation failed. '+error.message;}
+ finally{setBusy(false);}
+};
 if(!caseId){$('case-title').textContent='Open a case from the upload screen.';$('process').disabled=true;updateRequest();}else{setBusy(true);reload().catch(message).finally(()=>setBusy(false));}
 </script></html>

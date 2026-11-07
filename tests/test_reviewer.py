@@ -30,7 +30,7 @@ class ReviewerTests(unittest.TestCase):
         self.assertEqual(loaded['review_states'][self.finding]['decision']['state'],'dismissed')
         workspace=self.client.get(self.base+'/workspace').json();self.assertEqual(len(workspace['reviews']),2)
         self.assertEqual((folder/'analyses'/(self.context['analysis_id']+'.json')).read_bytes(),before)
-        self.assertFalse(workspace['dossier_generation_available'])
+        self.assertTrue(workspace['dossier_generation_available'])
 
     def test_invalid_origin_fields_and_unknown_findings_are_rejected(self):
         self.assertEqual(self.client.post(self.base+'/reviews',json=self.request).status_code,403)

@@ -12,6 +12,10 @@ RUN = re.compile(r'[0-9a-f]{32}\Z')
 KINDS = {'extraction':'extractions','context':'analyses','visual':'visual'}
 
 
+def record_fingerprint(record):
+    return hashlib.sha256(json.dumps(record, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
 class ReviewStore:
     def __init__(self,store):self.store=store
 
@@ -22,7 +26,9 @@ class ReviewStore:
     def load(self,case_id,kind,run_id):
         if kind not in KINDS or not RUN.fullmatch(run_id):raise ValueError('Invalid processing run')
         record=json.loads((self.folder(case_id)/KINDS[kind]/(run_id+'.json')).read_text(encoding='utf-8'))
-        if not isinstance(record,dict) or record.get('case_id')!=case_id:raise ValueError('Run belongs to a different case')
+        key = 'analysis_id' if kind == 'context' else 'run_id'
+        if not isinstance(record, dict) or record.get('case_id') != case_id or record.get(key) != run_id:
+            raise ValueError('Saved run identity does not match the selection')
         return record
 
     def catalog(self,case_id):
@@ -41,8 +47,7 @@ class ReviewStore:
         for evidence in item['finding']['evidence']:
             metadata,_=self.store.read_original(case_id,evidence['document_id'])
             if kind=='visual' and metadata['content_sha256']!=item['source_sha256']:raise ValueError('Source identity changed')
-        fingerprint=hashlib.sha256(json.dumps(item,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
-        return item,fingerprint
+        return item, record_fingerprint(item)
 
     def history(self,case_id):
         records=[]
@@ -85,23 +90,52 @@ class ReviewStore:
             except (OSError,ValueError):blocked[finding_id]='Source cannot be verified; process a new run before reviewing.'
         return {'report':record,'review_states':states,'blocked':blocked}
 
+    def dossier_selection(self, case_id, runs, reviewer, acknowledge):
+        if not reviewer.strip() or acknowledge is not True:
+            raise ValueError('Reviewer and acknowledgment of incomplete/uncertain results are required')
+        case = self.store.get_case(case_id)
+        documents = {doc['document_id']: doc for doc in case['documents']}
+        if not documents:
+            raise ValueError('No accepted documents are available for a dossier')
+        reports = {kind: self.load(case_id, kind, runs[kind]) for kind in KINDS}
+        context = reports['context']
+        if context['extraction_run_id'] != runs['extraction']:
+            raise ValueError('Context and extraction runs do not match')
+        if [item['field'] for item in context['fields']] != reports['extraction']['fields']:
+            raise ValueError('Context and extraction contain different saved fields. Run the checks again.')
+
+        # Read history once and match decisions against the exact in-memory findings.
+        history = {}
+        for event in self.history(case_id):
+            if event['case_id'] == case_id:
+                key = (event['kind'], event['run_id'], event['finding_id'], event['finding_sha256'])
+                history[key] = event
+        decisions = {}
+        for kind in ('context', 'visual'):
+            for item in reports[kind]['findings']:
+                finding = item['finding']
+                finding_id = finding['finding_id']
+                for source in finding['evidence']:
+                    doc = documents[source['document_id']]
+                    if kind == 'visual' and item['source_sha256'] != doc['content_sha256']:
+                        raise ValueError('Saved visual evidence does not match the original fingerprint')
+                key = (kind, runs[kind], finding_id, record_fingerprint(item))
+                review = history.get(key)
+                if review is None:
+                    raise ValueError('Review all findings in the selected runs before exporting a dossier')
+                decision = review['decision']
+                if decision['finding_id'] != finding_id or decision['state'] == ReviewState.PENDING:
+                    raise ValueError('Saved decision does not match its finding')
+                ReviewDecision(finding_id, ReviewState(decision['state']), decision['reviewer'], decision['note'])
+                decisions[kind, finding_id] = review
+        return case, reports, decisions
+
     def request_dossier(self,case_id,runs,reviewer,acknowledge):
-        if not reviewer.strip() or not acknowledge:raise ValueError('Reviewer and acknowledgment of incomplete/uncertain results are required')
-        self.load(case_id,'extraction',runs['extraction'])
-        context=self.load(case_id,'context',runs['context']);visual=self.load(case_id,'visual',runs['visual'])
-        if context['extraction_run_id']!=runs['extraction']:raise ValueError('Context and extraction runs do not match')
-        events=[]
-        for kind,report in (('context',context),('visual',visual)):
-            for item in report['findings']:
-                review=self.effective(case_id,kind,runs[kind],item['finding']['finding_id'])
-                if review is None:raise ValueError('Review all findings in the selected runs before recording a dossier request')
-                events.append(review['event_id'])
-        case=self.store.get_case(case_id)
-        if not case['documents']:raise ValueError('No accepted documents are available for a dossier request')
+        case, _, decisions = self.dossier_selection(case_id, runs, reviewer, acknowledge)
         record={'request_id':uuid4().hex,'case_id':case_id,'created_at':datetime.now(timezone.utc).isoformat(),
-                'reviewer':reviewer,'runs':runs,'review_event_ids':events,'status':'awaiting_dossier_feature',
+                'reviewer':reviewer,'runs':runs,'review_event_ids':[event['event_id'] for event in decisions.values()],'status':'awaiting_dossier_feature',
                 'source_hashes':{d['document_id']:d['content_sha256'] for d in case['documents']},
-                'message':'Request recorded. PDF generation is not available yet; no report was generated.'}
+                'message':'Request recorded. Use the dossier export action to generate a PDF; no report was generated by this request.'}
         folder=self.folder(case_id)/'dossier-requests';folder.mkdir(exist_ok=True)
         with (folder/(record['request_id']+'.json')).open('x',encoding='utf-8') as stream:json.dump(record,stream,indent=2)
         return record

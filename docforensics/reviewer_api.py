@@ -1,6 +1,8 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel,ConfigDict,Field,StrictBool
 from typing import Literal
+from .dossier import create_dossier, dossier_path, saved_dossiers
 from .reviewer import ReviewStore
 from .ingestion import SourceChangedError
 
@@ -37,7 +39,8 @@ def reviewer_router(store):
     @router.get('/{case_id}/workspace')
     def workspace(case_id:str):
         return call(lambda:{'case':store.get_case(case_id,verify_sources=False),'runs':reviews.catalog(case_id),
-                            'reviews':reviews.history(case_id),'dossier_requests':reviews.requests(case_id),'dossier_generation_available':False})
+                            'reviews':reviews.history(case_id),'dossier_requests':reviews.requests(case_id),
+                            'dossiers':saved_dossiers(reviews, case_id),'dossier_generation_available':True})
 
     @router.post('/{case_id}/reviews')
     def decide(case_id:str,request:DecisionRequest):
@@ -50,4 +53,17 @@ def reviewer_router(store):
     @router.post('/{case_id}/dossier-requests')
     def dossier(case_id:str,request:DossierRequest):
         return call(reviews.request_dossier,case_id,{'extraction':request.extraction,'context':request.context,'visual':request.visual},request.reviewer,request.acknowledge)
+
+    @router.post('/{case_id}/dossiers', status_code=201)
+    def export_dossier(case_id: str, payload: DossierRequest, request: Request):
+        runs = {'extraction': payload.extraction, 'context': payload.context, 'visual': payload.visual}
+        return call(create_dossier, reviews, case_id, runs, payload.reviewer.strip(),
+                    payload.acknowledge, str(request.base_url).rstrip('/'))
+
+    @router.get('/{case_id}/dossiers/{dossier_id}')
+    def download_dossier(case_id: str, dossier_id: str):
+        path = call(dossier_path, reviews, case_id, dossier_id)
+        return FileResponse(path, media_type='application/pdf',
+                            filename=f'ScopeGuard-{case_id}-{dossier_id}.pdf')
+
     return router

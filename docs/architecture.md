@@ -1,19 +1,22 @@
-# Foundation architecture
+# Prototype architecture
 
-This document records the shared design for the PS2 prototype. It describes the intended pipeline; OCR, visual analysis, review screens, and dossier generation are still separate work items.
+The PS2 prototype ingests and verifies original files, reads supported layouts, checks fields and page appearance, records review decisions, and exports PDF dossiers.
 
 ## Processing flow
 
 ```mermaid
 flowchart LR
-    A[Authorized documents] --> B[Ingest and classify]
-    B --> C[Read text and extract fields]
-    B --> D[Inspect page appearance]
-    C --> E[Compare fields within and across documents]
+    A[Authorized documents] --> B[Validate and preserve original bytes and hashes]
+    B --> C[Digital text or local English OCR]
+    B --> D[Render pages and check blue ink near print]
+    C --> E[Extract supported fields and compare normalized values]
     D --> F[Evidence-backed findings]
     E --> F
-    F --> G[Human review]
-    G --> H[Investigation dossier]
+    B --> I[Verified original page and region]
+    F --> I
+    F --> G[Human review and saved decisions]
+    G --> H[Validate selected runs and review decisions]
+    H --> J[Generate a saved PDF dossier]
 ```
 
 ## Shared records
@@ -39,22 +42,23 @@ The [ingestion layer](ingestion.md) accepts a packet of PDFs, PNGs, and JPEGs in
 
 The provided 15 scanned PDFs are in `../output/pdf/ocr_assignment_dataset/pdfs` relative to this repository, outside Git. A separate `ground_truth.csv` labels their unmodified and altered variants. Use labels **only to evaluate the system after it produces findings**; the running detection pipeline must not read them. Keep source documents and the answer key out of the public repository until their sharing rights are confirmed.
 
-Begin development with one three-document group, then test the same workflow on the remaining groups. The five groups contain variants of a single document each, so a later demonstration should also include related document types if cross-document contextual reasoning needs stronger evidence.
+The supplied five groups contain variants of one document per group. The contextual evaluation also uses controlled Student Registration and Enrollment Confirmation forms to test mismatches across related document types.
 
 The [local case manifest](local-manifest.md) records file identities, page counts, and hashes for A01 without copying source PDFs or reading evaluation labels.
 
-The [evidence tracing guide](evidence-tracing.md) describes both the fixed example and the local PDF upload screen. `docforensics/upload_app.py` serves a file picker, page preview, and manual region selection on the loopback interface. Each uploaded PDF becomes a separate verified manual case outside Git; the screen creates evidence bundles using the same tracing code and shared source coordinates. This is a partial interface for foundation verification; OCR, automatic findings, multi-document review, and reporting remain later work.
+The [evidence tracing guide](evidence-tracing.md) describes the separate single-PDF manual tool. The multi-document upload screen automatically runs a limited visual check after saving a case. The [reviewer workspace](reviewer.md) combines text extraction, contextual checks, visual findings, and source inspection across the saved packet.
 
-## Later implementation choices
+## Processing services and storage
 
-- Select OCR, document rendering, storage, and interface implementations in the respective feature branches.
-- Human review decisions are saved as immutable local events. The later dossier must use the selected processing runs and their effective review decisions.
-- Document unsupported formats and uncertain results rather than implying a complete forensic conclusion.
+- [Text extraction](ocr.md) uses PyMuPDF for digital text and the local English Tesseract model for scanned pages. Supported layouts supply typed fields and source rectangles.
+- [Contextual comparison](contextual.md) uses deterministic normalization and compares related documents after reviewer confirmation.
+- [Visual inspection](visual.md) uses a color and proximity check on rendered pages. Findings include verified source locations and crops.
+- The application saves original copies, processing snapshots, and review events in an external local directory. [Dossier export](dossier.md) verifies source fingerprints and uses ReportLab to render the selected run data and decisions as a new PDF.
 
 ## Processing contracts
 
-`docforensics/processing.py` defines the step requests, accepted outputs, statuses, errors, warnings, and review decisions. A synchronous coordinator validates adapter output and records audit events while keeping failures local to their affected inputs. The [processing contract guide](processing-contracts.md) contains the full rules and practice commands. Adapters for OCR, visual checks, contextual analysis, review screens, and report generation will be supplied by their feature branches.
+`docforensics/processing.py` defines step requests, outputs, statuses, errors, and warnings. Its practice coordinator validates adapter output and records step events. The reviewer workspace calls the real feature services through local endpoints. The [processing contract guide](processing-contracts.md) describes the practice flow.
 
-## Foundation check
+## Verification
 
-From the repository root, install `requirements-dev.txt`, then run `python -m unittest discover -s tests -v` to validate the shared models, manifest integrity, processing contracts, manual evidence tracing, and local upload endpoints. The checks do not implement actual OCR or automated alteration detection.
+From the repository root, install `requirements-dev.txt`, then run `python -m unittest discover -s tests -v`. The suite covers foundation contracts, local ingestion, extraction, contextual and visual findings, and saved human review. See the [setup guide](setup.md) for dependencies and commands.
