@@ -110,6 +110,12 @@ button { cursor: pointer; }
 .limits { align-items: flex-start; }
 .limits svg { margin-top: 2px; }
 .selected-files { margin: 14px 0 0; max-height: 136px; overflow: auto; border-radius: 9px; padding: 8px 14px 8px 31px; background: #f2f7f3; color: #355952; font-size: 14px; overflow-wrap: anywhere; }
+.selected-files li + li { border-top: 1px solid #dce7df; }
+.selected-file { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.selected-file-name { min-width: 0; overflow-wrap: anywhere; }
+.remove-file { flex: none; background: transparent; border: 0; padding: 10px 4px; color: #1d6658; font-size: 13px; font-weight: 680; }
+.remove-file:hover:not(:disabled) { text-decoration: underline; }
+.remove-file:disabled { color: #60786e; cursor: not-allowed; }
 #status { text-align: right; }
 #case-panel { margin: 8px 0 30px; scroll-margin-top: 18px; }
 #case-panel p { margin: 8px 0; }
@@ -162,8 +168,8 @@ summary { cursor: pointer; }
 <div class="upload-head"><h2 id="upload-title">Add documents</h2><p>Each saved file gets its own document ID and page IDs.</p></div>
 <form id="case-form">
 <div class="zone" id="drop-zone"><div class="stack" aria-hidden="true"><span class="sheet a"></span><span class="sheet b"></span><span class="sheet c"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg></span></div>
-<h3>Drop your files here</h3><p>Or select them from your computer.</p><input id="case-files" type="file" aria-label="Choose related documents" multiple accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" hidden>
-<button class="btn choose" id="choose-files" type="button" aria-describedby="file-limits"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg> Choose files</button></div>
+<h3>Drop your files here</h3><p>Choose several at once or add them one at a time.</p><input id="case-files" type="file" aria-label="Choose related documents" multiple accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" hidden>
+<button class="btn choose" id="choose-files" type="button" aria-describedby="file-limits"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span id="choose-files-label">Choose files</span></button></div>
 <div class="limits" id="file-limits"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg> PDF, PNG, JPEG · Up to 20 files · 20 MiB per file · 100 MiB total</div>
 <ul class="selected-files" id="selected-files" aria-label="Selected files" hidden></ul>
 <div class="upload-bottom row between"><span id="selection-count">No files selected</span><button class="btn next" id="create-case" type="submit" disabled>Upload &amp; check <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></button></div>
@@ -188,36 +194,55 @@ summary { cursor: pointer; }
 <p class="detail scroll-help">Scroll the table sideways to see page IDs and file details.</p>
 <div class="table-wrap"><table><thead><tr><th>Filename</th><th>Storage status (not authenticity)</th><th>Document ID</th><th>Pages</th><th>Details</th></tr></thead><tbody id="case-rows"></tbody></table></div>
 </section></main><script>
-const $=id=>document.getElementById(id);let busy=false,activeCase=null;
+const $=id=>document.getElementById(id);
+const MAX_FILES=20, MAX_TOTAL_BYTES=100*1024*1024;
+let busy=false,activeCase=null,selectedFiles=[];
 function message(text,error=false){$('status').textContent=text;$('status').className=error?'error':'';}
 function setBusy(value){
  busy=value;
- $('create-case').disabled=value||!$('case-files').files.length;
+ $('create-case').disabled=value||!selectedFiles.length;
  $('choose-files').disabled=value;
  $('case-files').disabled=value;
  $('retry-check').disabled=value;
+ for(const button of $('selected-files').querySelectorAll('button'))button.disabled=value;
  $('case-form').setAttribute('aria-busy',String(value));
 }
-function selectionChanged(){
- const files=Array.from($('case-files').files);
+function renderSelection(){
  const list=$('selected-files');
  list.replaceChildren();
- for(const file of files.slice(0,20)){
+ selectedFiles.forEach((file,index)=>{
   const item=document.createElement('li');
-  item.textContent=file.name;
+  const row=document.createElement('div');row.className='selected-file';
+  const name=document.createElement('span');name.className='selected-file-name';name.textContent=file.name;
+  const remove=document.createElement('button');remove.type='button';remove.className='remove-file';
+  remove.textContent='Remove';remove.setAttribute('aria-label',`Remove ${file.name}`);
+  remove.onclick=()=>{
+   if(busy)return;
+   selectedFiles.splice(index,1);
+   renderSelection();
+   const remaining=list.querySelectorAll('button');
+   (remaining[Math.min(index,remaining.length-1)]||$('choose-files')).focus();
+   message(selectedFiles.length?'File removed. You can add more files before uploading.':'No files selected.');
+  };
+  row.append(name,remove);item.appendChild(row);
   list.appendChild(item);
- }
- if(files.length>20){
-  const item=document.createElement('li');
-  item.textContent=`${files.length-20} more. Choose up to 20 files per case.`;
-  list.appendChild(item);
- }
- list.hidden=!files.length;
- $('selection-count').textContent=files.length?`${files.length} file${files.length===1?'':'s'} selected`:'No files selected';
- if(files.length){activeCase=null;$('case-panel').hidden=true;}
+ });
+ const count=selectedFiles.length;
+ list.hidden=!count;
+ $('selection-count').textContent=count?`${count} file${count===1?'':'s'} selected`:'No files selected';
+ $('choose-files-label').textContent=count?'Add more files':'Choose files';
  setBusy(busy);
- if(files.length)message('Files selected. Choose Upload & check to create the case.');
- else if(!activeCase)message('No case created yet.');
+}
+function addFiles(files){
+ if(busy||!files.length)return;
+ const next=[...selectedFiles,...files];
+ if(next.length>MAX_FILES){message('Up to 20 files per case. Your previous selection is still here.',true);return;}
+ if(next.reduce((sum,file)=>sum+file.size,0)>MAX_TOTAL_BYTES){message('The combined file size must not exceed 100 MiB. Your previous selection is still here.',true);return;}
+ selectedFiles=next;
+ activeCase=null;
+ $('case-panel').hidden=true;
+ renderSelection();
+ message('Add more files or choose Upload & check to create one case.');
 }
 async function readJSON(response){const data=await response.json();if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'The upload could not be completed.');return data;}
 function cell(row,text){const td=document.createElement('td');td.textContent=text;row.appendChild(td);return td;}
@@ -277,7 +302,11 @@ async function showCase(record){activeCase=record;
  else{$('visual-summary').hidden=true;message('No files were accepted. Check the rejection messages and choose supported files.',true);}
 }
 $('choose-files').addEventListener('click',()=>$('case-files').click());
-$('case-files').addEventListener('change',selectionChanged);
+$('case-files').addEventListener('change',event=>{
+ const files=Array.from(event.target.files);
+ event.target.value='';
+ addFiles(files);
+});
 const dropZone=$('drop-zone');
 const carriesFiles=event=>event.dataTransfer?.types.includes('Files');
 window.addEventListener('dragover',event=>{if(carriesFiles(event))event.preventDefault();});
@@ -295,19 +324,18 @@ dropZone.addEventListener('drop',event=>{
  dropZone.classList.remove('dragging');
  if(!carriesFiles(event))return;
  event.preventDefault();
- if(busy||!event.dataTransfer.files.length)return;
- $('case-files').files=event.dataTransfer.files;
- selectionChanged();
+ addFiles(Array.from(event.dataTransfer.files));
 });
 $('retry-check').onclick=async()=>{if(busy||!activeCase)return;setBusy(true);try{await checkVisual(activeCase,true);}finally{setBusy(false);}};
 $('case-form').addEventListener('submit',async event=>{event.preventDefault();if(busy)return;
- const files=Array.from($('case-files').files);$('case-panel').hidden=true;
- if(!files.length||files.length>20){message('Choose between 1 and 20 files.',true);return;}
- if(files.reduce((sum,file)=>sum+file.size,0)>100*1024*1024){message('The combined file size must not exceed 100 MiB.',true);return;}
- const form=new FormData();for(const file of files)form.append('files',file);setBusy(true);message('Saving and identifying your documents locally…');
+ if(!selectedFiles.length)return;
+ $('case-panel').hidden=true;
+ const form=new FormData();for(const file of selectedFiles)form.append('files',file);setBusy(true);message('Saving and identifying your documents locally…');
  try{
   $('visual-summary').hidden=false;
   await showCase(await readJSON(await fetch('/api/ingestion/cases',{method:'POST',headers:{'X-Local-Upload':'1'},body:form})));
+  selectedFiles=[];
+  renderSelection();
   $('case-panel').scrollIntoView({block:'start'});
   $('case-title').focus({preventScroll:true});
  }
