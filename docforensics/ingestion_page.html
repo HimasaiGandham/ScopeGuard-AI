@@ -130,17 +130,22 @@ button { cursor: pointer; }
 .duplicate { color: #805600; }
 .warning { padding: 12px; border-left: 4px solid #a36a00; background: #fff4d5; }
 .table-wrap { overflow: auto; }
-table { width: 100%; min-width: 980px; border-collapse: collapse; text-align: left; }
+table { width: 100%; min-width: 1060px; border-collapse: collapse; text-align: left; }
 th, td { padding: 12px; border-bottom: 1px solid #dce7df; vertical-align: top; overflow-wrap: anywhere; }
 th { background: #edf4ef; }
-td:first-child { min-width: 155px; }
-td:nth-child(3) { min-width: 245px; max-width: 300px; }
-td:nth-child(4), td:nth-child(5) { min-width: 175px; }
+td:first-child { min-width: 130px; }
+td:nth-child(2) { min-width: 155px; }
+td:nth-child(4) { min-width: 230px; max-width: 300px; }
+td:nth-child(5), td:nth-child(6) { min-width: 150px; }
+.action-label { display: inline-block; border-radius: 6px; padding: 3px 7px; background: #eef2f0; color: #415b52; font-size: 13px; font-weight: 750; }
+.action-cell[data-state="required"] .action-label { background: #fbe8e9; color: #a51522; }
+.action-cell[data-state="clear"] .action-label { background: #e5f2e8; color: #16683e; }
+.action-note { display: block; margin-top: 4px; color: #415b52; font-size: 13px; }
 code { font-size: 13px; overflow-wrap: anywhere; }
 summary { cursor: pointer; }
 .meta { overflow-wrap: anywhere; }
 .scroll-help { display: none; }
-@media (max-width: 1060px) { .scroll-help { display: block; } }
+@media (max-width: 1160px) { .scroll-help { display: block; } }
 @media (max-width: 760px) {
  .wrap { width: calc(100% - 32px); }
  .mast { height: auto; }
@@ -191,12 +196,14 @@ summary { cursor: pointer; }
   <a id="reopen">Reopen this case</a>
   <a id="case-record" target="_blank" rel="noopener">View case record</a>
 </div>
+<p id="action-note" class="detail">Action reflects the visual check for each file. No marks detected leaves authenticity unverified.</p>
 <p class="detail scroll-help">Scroll the table sideways to see page IDs and file details.</p>
-<div class="table-wrap"><table><thead><tr><th>Filename</th><th>Storage status (not authenticity)</th><th>Document ID</th><th>Pages</th><th>Details</th></tr></thead><tbody id="case-rows"></tbody></table></div>
+<div class="table-wrap"><table aria-describedby="action-note"><thead><tr><th scope="col">Filename</th><th scope="col">Action</th><th scope="col">Storage status (not authenticity)</th><th scope="col">Document ID</th><th scope="col">Pages</th><th scope="col">Details</th></tr></thead><tbody id="case-rows"></tbody></table></div>
 </section></main><script>
 const $=id=>document.getElementById(id);
 const MAX_FILES=20, MAX_TOTAL_BYTES=100*1024*1024;
 let busy=false,activeCase=null,selectedFiles=[];
+const actionCells=new Map();
 function message(text,error=false){$('status').textContent=text;$('status').className=error?'error':'';}
 function setBusy(value){
  busy=value;
@@ -247,34 +254,63 @@ function addFiles(files){
 async function readJSON(response){const data=await response.json();if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'The upload could not be completed.');return data;}
 function cell(row,text){const td=document.createElement('td');td.textContent=text;row.appendChild(td);return td;}
 function paragraph(parent,text,cls=''){const p=document.createElement('p');p.textContent=text;p.className=cls;parent.appendChild(p);return p;}
+function showAction(target,state,text,note=''){
+ target.className='action-cell';
+ target.dataset.state=state;
+ const label=document.createElement('strong');label.className='action-label';label.textContent=text;
+ target.replaceChildren(label);
+ if(note){
+  const detail=document.createElement('span');detail.className='action-note';detail.textContent=note;
+  target.appendChild(detail);
+ }
+}
 async function checkVisual(record,force=false){
  const endpoint='/api/ingestion/cases/'+encodeURIComponent(record.case_id);$('check-results').replaceChildren();$('retry-check').hidden=true;
+ for(const target of actionCells.values())showAction(target,'pending','Checking…');
  $('check-status').textContent='Checking for supported visual marks… Authenticity is not yet assessed.';
  try{
   const workspace=await readJSON(await fetch(endpoint+'/workspace'));
   let run=force?null:workspace.runs.visual[0];
   if(!run){const report=await readJSON(await fetch(endpoint+'/visual',{method:'POST',headers:{'X-Local-Upload':'1'}}));run=report.run_id;}
   const view=await readJSON(await fetch(endpoint+'/review-run/visual/'+encodeURIComponent(run))),report=view.report;
-  let incomplete=Object.keys(view.blocked).length>0;
-  for(const doc of report.documents){
-   const items=report.findings.filter(item=>item.finding.evidence.some(source=>source.document_id===doc.document_id));
+  const results=new Map(report.documents.map(doc=>[doc.document_id,doc]));
+  let incomplete=false;
+  const availableFindings=new Set();
+  for(const sourceDoc of record.documents){
+   const id=sourceDoc.document_id, doc=results.get(id);
+   const pages=doc?.pages??[];
+   const items=report.findings.filter(item=>item.finding.evidence.some(source=>source.document_id===id));
    const blocked=items.some(item=>view.blocked[item.finding.finding_id]);
-   const partial=doc.status!=='completed'||blocked;incomplete ||= partial;
-   const headline=items.length&&!blocked?'Possible alteration — review required':partial?'Check incomplete — manual review required':'No supported visual marks detected — authenticity unverified';
-   paragraph($('check-results'),`${doc.filename}: ${headline}.`,'warning');
-   if(doc.error)paragraph($('check-results'),doc.error,'error');
-   for(const page of doc.pages)if(page.error||page.warning)paragraph($('check-results'),`Page ${page.page_number}: ${page.error||page.warning}`,'error');
+   const checkedPages=new Set(pages.filter(page=>page.status==='completed'&&!page.error&&!page.warning).map(page=>page.page_id));
+   const partial=doc?.status!=='completed'||!!doc?.error||blocked||sourceDoc.pages.some(page=>!checkedPages.has(page.page_id));
+   incomplete ||= partial;
+   const inspectable=items.some(item=>!view.blocked[item.finding.finding_id]);
+   const target=actionCells.get(id);
+   if(partial||items.length){
+    const note=partial?'Visual check incomplete':'Inspect possible mark';
+    showAction(target,'required','Action required',note);
+   }else showAction(target,'clear','No marks detected');
+   const headline=inspectable?'Possible alteration — review required':partial?'Check incomplete — manual review required':'No supported visual marks detected — authenticity unverified';
+   paragraph($('check-results'),`${sourceDoc.filename}: ${headline}.`,'warning');
+   if(doc?.error)paragraph($('check-results'),doc.error,'error');
+   for(const page of pages)if(page.error||page.warning)paragraph($('check-results'),`Page ${page.page_number}: ${page.error||page.warning}`,'error');
    for(const item of items){const f=item.finding;if(view.blocked[f.finding_id]){paragraph($('check-results'),view.blocked[f.finding_id],'error');continue;}
+    availableFindings.add(f.finding_id);
     paragraph($('check-results'),f.observation+' '+f.explanation);
     const a=document.createElement('a');a.href=endpoint+'/visual/'+encodeURIComponent(run)+'/evidence/'+encodeURIComponent(f.finding_id)+'/crop';a.target='_blank';a.rel='noopener';a.textContent='Inspect suspicious region · page '+f.evidence[0].region.page_number;$('check-results').appendChild(a);
    }
   }
-  const leads=report.findings.filter(item=>!view.blocked[item.finding.finding_id]).length;
-  $('check-status').textContent=(leads?`${leads} suspicious visual region(s) found. Possible alteration — review required.`:'No supported visual marks detected. This does not mean the document is correct or genuine.')+(incomplete?' Some checks are incomplete; inspect the errors.':'');
+  const leads=availableFindings.size;
+  const summary=leads?`${leads} suspicious visual region(s) found. Possible alteration — review required.`:incomplete?'Manual review required.':'No supported visual marks detected. This does not mean the document is correct or genuine.';
+  $('check-status').textContent=summary+(incomplete?' Some checks are incomplete; inspect the errors.':'');
   paragraph($('check-results'),report.limits,'detail');
   paragraph($('check-results'),'Text consistency and cross-document checks run separately in the reviewer workspace. An isolated document cannot establish whether a changed value agrees with an authoritative original.','detail');
   message(leads?'Case saved. Suspicious visual marks require review.':incomplete?'Case saved, but the visual check is incomplete.':'Case saved. Limited visual check finished; authenticity remains unverified.');
- }catch(error){$('check-status').textContent='Check failed — authenticity unverified. '+error.message;message('Case saved, but the alteration check failed. Review or retry the check.',true);}
+ }catch(error){
+  for(const target of actionCells.values())showAction(target,'required','Action required','Visual check failed');
+  $('check-status').textContent='Check failed — authenticity unverified. '+error.message;
+  message('Case saved, but the alteration check failed. Review or retry the check.',true);
+ }
  finally{$('retry-check').hidden=false;}
 }
 async function showCase(record){activeCase=record;
@@ -286,8 +322,16 @@ async function showCase(record){activeCase=record;
  $('visual-link').href='/visual?case='+encodeURIComponent(record.case_id);
  $('review-link').href='/review?case='+encodeURIComponent(record.case_id);
  $('reopen').href='/ingest?case='+encodeURIComponent(record.case_id);$('case-record').href=endpoint;$('case-rows').replaceChildren();
- for(const upload of record.uploads){const row=document.createElement('tr');cell(row,upload.filename);cell(row,upload.status==='accepted'?'Saved — contents unverified':upload.status).className=upload.status;
+ actionCells.clear();
+ for(const upload of record.uploads){const row=document.createElement('tr');cell(row,upload.filename);
   const sourceDoc=record.documents.find(d=>d.document_id===upload.document_id);
+  const action=cell(row,'');
+  if(sourceDoc){
+   actionCells.set(sourceDoc.document_id,action);
+   showAction(action,'pending','Checking…');
+  }else if(upload.status==='duplicate')showAction(action,'skipped','Duplicate skipped','Use saved copy');
+  else showAction(action,'required','Action required','File rejected');
+  cell(row,upload.status==='accepted'?'Saved — contents unverified':upload.status).className=upload.status;
   cell(row,sourceDoc?sourceDoc.document_id:(upload.duplicate_of?'Same as '+upload.duplicate_of:'—'));
   const pages=cell(row,sourceDoc?String(sourceDoc.page_count):'—');const detail=cell(row,'');
   if(sourceDoc){const list=document.createElement('details');const label=document.createElement('summary');label.textContent='Show page IDs';list.appendChild(label);

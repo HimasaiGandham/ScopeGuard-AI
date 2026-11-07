@@ -8,7 +8,7 @@ Start the server using the [setup guide](setup.md), then open `/ingest` on its l
 
 1. Drag related PDFs or images into the upload area, or select **Choose files**. Select several at once or use **Add more files** to build the packet across multiple selections. Review the filenames and remove any unwanted file before uploading.
 2. Click **Upload & check**. The screen automatically runs the supported blue-ink/printed-content check and shows **Possible alteration — review required** when it finds a suspicious region. Inspect the linked source crop and open the reviewer workspace for full text, contextual, and visual review.
-3. Inspect each file's status, document ID, page count, and rejection or duplicate message.
+3. Read **Action** for each file. Red **Action required** means a possible mark needs review, the visual check failed or was incomplete, or the file was rejected. Green **No marks detected** means the supported visual check completed without finding marks. Authenticity remains unverified. Exact copies are labeled **Duplicate skipped**. The other columns show storage status, document ID, pages, and file details.
 4. Expand **Show page IDs** or **Show fingerprint** to inspect a document's recorded identity.
 5. Use **Download original** to retrieve the exact accepted bytes, or **View case record** to inspect the metadata.
 6. Save **Reopen this case** to return to the same case after a refresh or server restart. Keep the same data directory when restarting.
