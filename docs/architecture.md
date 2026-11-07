@@ -48,7 +48,7 @@ The [evidence tracing guide](evidence-tracing.md) describes both the fixed examp
 ## Later implementation choices
 
 - Select OCR, document rendering, storage, and interface implementations in the respective feature branches.
-- Persist the shared review decisions and expose them in the review interface and dossier.
+- Human review decisions are saved as immutable local events. The later dossier must use the selected processing runs and their effective review decisions.
 - Document unsupported formats and uncertain results rather than implying a complete forensic conclusion.
 
 ## Processing contracts

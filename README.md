@@ -67,3 +67,5 @@ The [OCR guide](docs/ocr.md) explains local model setup, supported layouts, sour
 The [contextual comparison guide](docs/contextual.md) explains supported comparisons, same-student/enrollment grouping, uncertainty, and evidence inspection.
 
 The [visual inspection guide](docs/visual.md) explains the supported ink-overlap signal, evidence, measured misses, and false-alarm limitations.
+
+The [reviewer workspace guide](docs/reviewer.md) covers combined processing results, evidence inspection, saved human decisions, and dossier-request tracking. PDF dossier generation remains the next feature.
