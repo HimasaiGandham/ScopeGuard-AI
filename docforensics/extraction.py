@@ -155,7 +155,7 @@ def extract_case(store, case_id: str, *, tessdata: str | None = None, timeout: f
             result["status"] = "completed" if all(s == "completed" for s in states) else "partial" if "completed" in states else "failed"
         documents.append(result)
     return {"case_id": case_id, "documents": documents, "fields": all_fields, "uploads": record["uploads"],
-            "limits": "English printed text; one supported demo layout; handwriting and other layouts need human review."}
+            "limits": "English printed text on supported demo layouts. Handwriting and other layouts need human review."}
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 
 Create or reopen a case using the [ingestion screen](ingestion.md), then select **Open reviewer workspace**. The route is `/review?case=<case_id>`. Bookmark it to return to the same case. This screen combines the existing real extraction, contextual, and visual services; older individual screens remain available.
 
-The case section lists accepted files, document IDs, page counts, duplicates, and rejection reasons. Adding files creates a new case and does not replace the originals in an existing one.
+The case section lists accepted files, document IDs, page counts, duplicates, and rejection reasons. Each upload creates a new case. Its upload page runs an initial visual check and links supported suspicious marks to verified crops. The saved visual run is available in the reviewer workspace.
 
 Select the same-student-and-enrollment checkbox only when that relationship is confirmed, then click **Process this case**. Live stage messages show extraction, contextual comparison, and visual inspection. Document/page results show completed, partial, failed, unsupported, or unreadable outcomes. Context is skipped if extraction fails; visual inspection is still attempted. Successful results remain available when another stage fails.
 
@@ -29,21 +29,20 @@ Each action creates a new local review event with actor, note, UTC timestamp, de
 
 Reviewer names are self-entered local identifiers, not authenticated or digitally signed identities. Local JSON storage and source manifests are not tamper-proof. This is a local prototype, not a multi-user authorization system.
 
-## Dossier requests and current boundary
+## Export an investigation dossier
 
-PDF dossier generation belongs to the next feature and is **not available yet**. The workspace can record a request for a reviewed packet without pretending to generate a report.
-
-Select extraction, matching context, and visual runs; review every finding; enter the reviewer name; and acknowledge that results may be incomplete or uncertain. **Record dossier request** then saves a new request containing the selected run IDs, effective review-event IDs, and verified source fingerprints. The status is `awaiting_dossier_feature`. The screen explicitly states that no report was generated, and the latest recorded request remains visible after reload. This is request tracking, not an active export queue or downloadable dossier.
+Select matching runs, record a decision for every finding, and acknowledge the limits. Select **Generate PDF dossier** and download the saved report. Earlier exports remain available after refresh. See the [dossier guide](dossier.md) for the PDF contents, evidence links, and storage.
 
 ## Local API and storage
 
-- `GET /api/ingestion/cases/{case_id}/workspace`: case inventory, saved-run catalog, review history, dossier requests, and export availability.
+- `GET /api/ingestion/cases/{case_id}/workspace`: case inventory, saved runs, review history, and saved PDFs.
 - `GET /api/ingestion/cases/{case_id}/review-run/{kind}/{run_id}`: selected report with effective review states and blocked-source notices. Kinds are extraction, context, and visual.
 - `POST /api/ingestion/cases/{case_id}/reviews`: kind, run_id, finding_id, state (`accepted_for_review` or `dismissed`), reviewer, and note.
-- `POST /api/ingestion/cases/{case_id}/dossier-requests`: extraction/context/visual run IDs, reviewer, and strict boolean acknowledge.
+- `POST /api/ingestion/cases/{case_id}/dossiers`: generate a PDF using the selected run IDs, reviewer, and explicit acknowledgment.
+- `GET /api/ingestion/cases/{case_id}/dossiers/{dossier_id}`: download a saved PDF.
 
 The existing local host/origin/custom-header checks apply. Invalid states, unrelated findings, absent notes, mismatched processing runs, and unavailable sources are rejected. Reviews are exclusive new files in the external case's `reviews` folder; request files use `dossier-requests`. Originals, earlier runs, and notes are not overwritten. A changed review appends an event rather than editing an earlier note.
 
 ## Verification
 
-Use the full test commands in the [setup guide](setup.md). Reviewer tests cover save/reload/change, immutable history, invalid inputs, source tampering, exact-run/finding binding, and dossier-request gates. Browser acceptance checks upload two different controlled document types, run real processing, inspect evidence, save/change/reload decisions, record a truthful pending request, and inject a failed rerun to confirm stale results are not substituted. Sample files, screenshots, generated records, and internal logs remain local.
+Use the full test commands in the [setup guide](setup.md). Reviewer tests cover saved decision history, invalid inputs, changed originals, and decisions bound to exact runs and findings. Dossier tests cover matching runs, source links, failure visibility, and the download round trip. Sample files and generated reports remain local.

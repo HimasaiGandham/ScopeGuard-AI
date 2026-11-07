@@ -83,4 +83,4 @@ Add `--json` to print the structured progress summary. The runtime reads the nam
 
 The tests exercise shared field and finding exchange, document classification without identity changes, valid review decisions, input-scope checks, per-document failure isolation, partial inputs, waiting review, unavailable adapters, safe unexpected-error messages, low-confidence warnings, report-file validation, invalid page references, and manifest-to-practice integration. Original synthetic test cases remain unchanged when output validation fails.
 
-The [evidence tracing guide](evidence-tracing.md) demonstrates a real page-region link using the A01 source images. Feature adapters for actual OCR and analysis remain in their planned branches.
+The [evidence tracing guide](evidence-tracing.md) demonstrates a page-region link using the A01 sources. The [reviewer workspace](reviewer.md) runs the implemented extraction, contextual, and visual services on saved cases. The practice commands above exercise the simulated coordinator.
