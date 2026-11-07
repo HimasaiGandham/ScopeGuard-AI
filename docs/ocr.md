@@ -2,18 +2,22 @@
 
 ## Install the English model
 
-Digital PDF text works without a language model. Scanned PDFs and PNG/JPEG images use the Tesseract engine integrated into PyMuPDF and need its English language data. Download the model from the official Tesseract repository into a folder outside the checkout. For this workspace:
+Digital PDF text works without a language model. Scanned PDFs and PNG/JPEG images use the Tesseract engine integrated into PyMuPDF and need its English language data. Run these commands from the repository root before starting the app:
 
 ```powershell
-New-Item -ItemType Directory -Path 'D:\Dataops\output\ocr-models' -Force
-if (-not (Test-Path -LiteralPath 'D:\Dataops\output\ocr-models\eng.traineddata')) {
-    Invoke-WebRequest 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/eng.traineddata' -OutFile 'D:\Dataops\output\ocr-models\eng.traineddata'
+$ocrModelDir = Join-Path (Split-Path (Get-Location).Path -Parent) 'output\ocr-models'
+New-Item -ItemType Directory -Path $ocrModelDir -Force | Out-Null
+$englishModel = Join-Path $ocrModelDir 'eng.traineddata'
+if (-not (Test-Path -LiteralPath $englishModel)) {
+    Invoke-WebRequest 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/eng.traineddata' -OutFile $englishModel
 }
-Get-FileHash 'D:\Dataops\output\ocr-models\eng.traineddata' -Algorithm SHA256
-$env:OCR_TESSDATA = 'D:\Dataops\output\ocr-models'
+if ((Get-FileHash -LiteralPath $englishModel -Algorithm SHA256).Hash -ne '7D4322BD2A7749724879683FC3912CB542F19906C83BCC1A52132556427170B2') {
+    throw 'The English model does not match the tested fingerprint. Check the model file before starting OCR.'
+}
+$env:OCR_TESSDATA = $ocrModelDir
 ```
 
-The tested model hash is `7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2`. The upstream main branch can change; compare the hash before relying on the measured results below. Keep model files local. Start the server using the [setup guide](setup.md) after setting the variable. The default model folder is the checkout parent's `output/ocr-models`.
+The download uses the verified upstream revision. Keep the model file local and start the server in the same PowerShell session using the [setup guide](setup.md). The default model folder is the checkout parent's `output/ocr-models`.
 
 ## Read and inspect a case
 

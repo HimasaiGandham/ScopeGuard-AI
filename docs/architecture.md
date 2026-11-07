@@ -2,6 +2,8 @@
 
 The PS2 prototype ingests and verifies original files, reads supported layouts, checks fields and page appearance, records review decisions, and exports PDF dossiers.
 
+Open the [standalone architecture diagram](architecture-overview.svg) for the handover view. See [dependency roles and notices](third-party.md) for the components behind each stage.
+
 ## Processing flow
 
 ```mermaid
@@ -40,7 +42,7 @@ Case validation rejects evidence that names an absent document or a page beyond 
 
 The [ingestion layer](ingestion.md) accepts a packet of PDFs, PNGs, and JPEGs into a new saved case. `docforensics/ingestion.py` preserves original bytes, rejects unsupported or unreadable files individually, deduplicates identical content within the packet, and assigns stable document and page IDs. Its `CaseStore.as_case(...)` returns the shared `InvestigationCase` after source verification. JSON case records support mixed file formats; the existing A01 manifest remains the PDF-only foundation example. File-format identification does not classify the document's business type or extract text.
 
-The provided 15 scanned PDFs are in `../output/pdf/ocr_assignment_dataset/pdfs` relative to this repository, outside Git. A separate `ground_truth.csv` labels their unmodified and altered variants. Use labels **only to evaluate the system after it produces findings**; the running detection pipeline must not read them. Keep source documents and the answer key out of the public repository until their sharing rights are confirmed.
+Development used a local set of 15 supplied scans and a separate evaluation key. The [synthetic demo packet](demo.md) can be generated without those files. Keep evaluation labels outside runtime and consult them only after the system produces findings.
 
 The supplied five groups contain variants of one document per group. The contextual evaluation also uses controlled Student Registration and Enrollment Confirmation forms to test mismatches across related document types.
 

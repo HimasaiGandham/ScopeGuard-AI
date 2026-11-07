@@ -35,7 +35,7 @@ If an application form and a supporting document show different dates of birth, 
 
 **Multi-document case creation is available:** upload related PDFs, PNGs, and JPEGs together, see each file's acceptance status, and inspect its document ID, page IDs, and fingerprint. A separate manual PDF screen lets you draw an evidence region and open its source-linked view. Shared records, source verification, and processing contracts support these tools.
 
-The prototype supports the workflow from document upload through PDF dossier export. English printed text extraction returns source-linked fields for supported layouts. Contextual checks compare observed values within documents and across reviewer-confirmed related documents. The upload screen checks for blue ink near dark printed content and links suspected regions to the original. The reviewer workspace saves decisions and exports the selected case results to PDF. Numeric OCR and visual confidence are unavailable. The final demo and submission are Priority 7.
+The prototype supports the workflow from document upload through PDF dossier export. English printed text extraction returns source-linked fields for supported layouts. Contextual checks compare observed values within documents and across reviewer-confirmed related documents. The upload screen checks for blue ink near dark printed content and links suspected regions to the original. The reviewer workspace saves decisions and exports the selected case results to PDF. Numeric OCR and visual confidence are unavailable. See the [measured results](docs/limitations.md) for the rehearsal and reserved case.
 
 ## 📤 Try your own documents
 
@@ -69,3 +69,5 @@ The [contextual comparison guide](docs/contextual.md) explains supported compari
 The [visual inspection guide](docs/visual.md) explains the supported ink-overlap signal, evidence, measured misses, and false-alarm limitations.
 
 The [reviewer workspace guide](docs/reviewer.md) covers processing, evidence inspection, and saved decisions. The [dossier guide](docs/dossier.md) explains PDF generation, download, and evidence links.
+
+The [live demonstration](docs/demo.md) includes a synthetic packet generator and a five-minute walkthrough. The [handover checklist](docs/submission.md) maps the eight required deliverables.

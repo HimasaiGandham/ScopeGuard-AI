@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="760" viewBox="0 0 1140 760" role="img" aria-labelledby="title description">
+  <title id="title">ScopeGuard AI prototype architecture</title>
+  <desc id="description">Authorized files flow through verified ingestion, local text extraction and visual analysis, human review, and dossier export. Each finding can be traced to its original file and page.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#4d6981"/>
+    </marker>
+    <style>
+      text {font-family: system-ui, sans-serif; fill: #162b40}
+      .title {font-size: 33px; font-weight: 750}
+      .sub {font-size: 16px; fill: #466075}
+      .label {font-size: 19px; font-weight: 700}
+      .note {font-size: 15px; fill: #304b60}
+      .box {fill: #fff; stroke: #a3b8c9; stroke-width: 1.5}
+      .edge {stroke: #4d6981; stroke-width: 2; fill: none; marker-end: url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1140" height="760" fill="#f4f8fc"/>
+  <text x="52" y="55" class="title">ScopeGuard AI prototype architecture</text>
+  <text x="52" y="84" class="sub">Local document investigation from upload to reviewed PDF</text>
+
+  <g>
+    <rect class="box" x="52" y="118" width="295" height="93" rx="11"/>
+    <text x="70" y="149" class="label">1  Authorized inputs</text>
+    <text x="70" y="176" class="note">Related PDF, PNG, and JPEG files</text>
+    <text x="70" y="195" class="note">Case created on the local machine</text>
+
+    <rect class="box" x="405" y="118" width="394" height="93" rx="11"/>
+    <text x="424" y="149" class="label">2  Validate and preserve originals</text>
+    <text x="424" y="176" class="note">Record IDs, pages, and SHA-256 fingerprints</text>
+    <text x="424" y="195" class="note">Skip exact duplicates and report rejected uploads</text>
+
+    <rect x="848" y="118" width="240" height="143" rx="11" fill="#e7f1f9" stroke="#a3b8c9"/>
+    <text x="866" y="149" class="label">Verified case storage</text>
+    <text x="866" y="177" class="note">Original copies and hashes</text>
+    <text x="866" y="199" class="note">Saved runs and decisions</text>
+    <text x="866" y="221" class="note">Historical dossier exports</text>
+    <text x="866" y="243" class="note">Local folder outside Git</text>
+
+    <rect class="box" x="52" y="264" width="424" height="109" rx="11"/>
+    <text x="70" y="297" class="label">3A  Read and structure text</text>
+    <text x="70" y="324" class="note">PyMuPDF digital text or local English Tesseract OCR</text>
+    <text x="70" y="347" class="note">Supported fields, types, and original page regions</text>
+
+    <rect class="box" x="518" y="264" width="281" height="109" rx="11"/>
+    <text x="536" y="297" class="label">3B  Inspect page images</text>
+    <text x="536" y="324" class="note">PyMuPDF rendering and Pillow</text>
+    <text x="536" y="347" class="note">Blue ink near dark printed text</text>
+
+    <rect class="box" x="52" y="421" width="424" height="89" rx="11"/>
+    <text x="70" y="454" class="label">4  Compare observed fields</text>
+    <text x="70" y="481" class="note">Normalize supported values and compare related records</text>
+
+    <rect class="box" x="518" y="421" width="422" height="114" rx="11"/>
+    <text x="536" y="454" class="label">5  Review findings and original evidence</text>
+    <text x="536" y="481" class="note">Page highlights, crops, uncertainty, and failures</text>
+    <text x="536" y="503" class="note">Human decisions and notes linked to exact runs</text>
+
+    <rect class="box" x="518" y="593" width="422" height="89" rx="11"/>
+    <text x="536" y="626" class="label">6  Export the investigation dossier</text>
+    <text x="536" y="653" class="note">ReportLab PDF with six sections and source references</text>
+  </g>
+  <path class="edge" d="M347 164H405"/>
+  <path class="edge" d="M799 164H848"/>
+  <path class="edge" d="M602 211V237H264V264"/>
+  <path class="edge" d="M658 211V264"/>
+  <path class="edge" d="M264 373V421"/>
+  <path class="edge" d="M658 373V421"/>
+  <path class="edge" d="M476 466H518"/>
+  <path class="edge" d="M968 261V470H940" stroke-dasharray="5 4"/>
+  <path class="edge" d="M729 535V593"/>
+  <text x="52" y="721" class="sub">Evaluation labels stay outside runtime. Findings are leads for human review.</text>
+</svg>

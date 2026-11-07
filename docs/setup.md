@@ -5,6 +5,11 @@ Use Python 3.13, the tested version for this project. In PowerShell, open the re
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+For scanned PDFs or images, [download and verify the English OCR model](ocr.md#install-the-english-model). In the same PowerShell session, start the app:
+
+```powershell
 .\.venv\Scripts\python.exe -m docforensics.upload_app
 ```
 
@@ -21,7 +26,7 @@ Document cases accept up to 20 PDFs, PNGs, or JPEGs, at most 20 MiB each and 100
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-Tests generate synthetic PDFs and need no private dataset or evaluation answer key. The checkout's parent folder must be writable because test files are created outside the checkout. Direct dependencies are pinned; transitive dependencies are not locked. Read the dependency licenses before distribution, especially PyMuPDF's licensing options. A project-wide license has not yet been selected.
+Tests generate synthetic PDFs and need no private dataset or evaluation answer key. The checkout's parent folder must be writable because test files are created outside the checkout. Direct dependencies are pinned and transitive dependencies are resolved at install time. See [dependency terms](third-party.md) before distribution.
 
 ## Supported behavior and contracts
 
