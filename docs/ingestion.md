@@ -7,13 +7,15 @@ The document case screen accepts related files together, preserves their origina
 Start the server using the [setup guide](setup.md), then open `/ingest` on its local address. For the default port this is [the document case screen](http://127.0.0.1:8765/ingest).
 
 1. Choose the related PDFs or images. You can select several files at once.
-2. Click **Upload files and create case**.
+2. Click **Upload files and check for visual marks**. The screen automatically runs the supported blue-ink/printed-content check and shows **Possible alteration — review required** when it finds a suspicious region. Inspect the linked source crop and open the reviewer workspace for full text, contextual, and visual review.
 3. Inspect each file's status, document ID, page count, and rejection or duplicate message.
 4. Expand **Show page IDs** or **Show fingerprint** to inspect a document's recorded identity.
 5. Use **Download original** to retrieve the exact accepted bytes, or **View case record** to inspect the metadata.
 6. Save **Reopen this case** to return to the same case after a refresh or server restart. Keep the same data directory when restarting.
 
-Each submission creates a new case. The application does not append to or replace an earlier case. The single-PDF manual evidence screen remains a separate tool at `/`. The extraction screen reads the saved packet without replacing its ingestion record or originals; forensic anomaly analysis remains later work.
+Each submission creates a new case. The application does not append to or replace an earlier case. The single-PDF manual evidence screen remains a separate tool at `/`. **Saved** means readable file storage, not correct contents or genuine provenance. Identical-file duplicates and possible alterations are separate results. A limited visual check with no findings cannot certify authenticity; black-ink and invisible digital edits are unsupported. Text consistency and cross-document checks require processing in the [reviewer workspace](reviewer.md).
+
+Reopening a case displays its latest saved visual check after source verification; if none exists, it runs one. **Run visual check again** creates a new report while preserving previous reports and original files. Failed or partial checks remain visible as incomplete, and findings link to verified source crops. No evaluation answer key is used.
 
 ## Supported files and limits
 
@@ -51,3 +53,5 @@ POST requests require `X-Local-Upload: 1` and a matching local origin when an Or
 `CaseStore.ingest(tuple_of_IncomingFile)` provides the same behavior without HTTP. `CaseStore.as_case(case_id)` returns shared `Document` records inside an `InvestigationCase`, preserving original filenames, document IDs, page counts, and fingerprints. Page IDs and media types remain in the saved case record. The existing processing coordinator and evidence models remain unchanged. Runtime ingestion does not read evaluation labels.
 
 Run the full automated suite using the [setup guide](setup.md). A useful manual check is to submit three different PDFs, repeat one file, add a PNG or JPEG, and include an unsupported or damaged file. Verify the statuses and page counts, reopen the case, download an accepted original, and compare its SHA-256 fingerprint with the source file.
+
+The optional browser regression test uses synthetic clean and blue-overprinted PNGs and checks automatic warnings, saved-run reuse, retry, mixed duplicates/rejections, incomplete results, and failure recovery. With Playwright available to Node, start a separate server using an external temporary data directory and port 8769, then run `node tests/browser_ingestion.cjs`. Set `BASE_URL` for another port and `BROWSER_EXECUTABLE` for an installed Edge/Chrome. Test cases are saved in that server's data directory; never point the test at important case storage.
