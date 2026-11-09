@@ -82,6 +82,30 @@ class UploadAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.client.get("/", headers={"Host": "elsewhere.example"}).status_code, 400)
 
+    def test_hosted_demo_requires_credentials_and_preserves_https_uploads(self):
+        app = create_app(self.root / "hosted", hosted_access=("demo.example", "test-password"))
+        with TestClient(app, base_url="http://demo.example") as client:
+            auth = ("reviewer", "test-password")
+            self.assertEqual(client.get("/api/health").status_code, 200)
+            self.assertEqual(client.get("/api/health", headers={"Host": "elsewhere.example"}).status_code, 400)
+            self.assertEqual(client.get("/ingest").status_code, 401)
+            self.assertEqual(client.get("/ingest", auth=("reviewer", "wrong")).status_code, 401)
+            page = client.get("/ingest", auth=auth)
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Upload only synthetic examples", page.text)
+            self.assertNotIn("Your files stay on this computer", page.text)
+
+            headers = {"X-Local-Upload": "1", "X-Filename": "synthetic.pdf",
+                       "Origin": "https://demo.example", "Content-Type": "application/pdf"}
+            self.assertEqual(client.post("/api/upload", content=self.pdf, headers=headers).status_code, 401)
+            wrong_origin = dict(headers, Origin="https://elsewhere.example")
+            self.assertEqual(client.post("/api/upload", content=self.pdf, headers=wrong_origin, auth=auth).status_code, 403)
+            result = client.post("/api/upload", content=self.pdf, headers=headers, auth=auth)
+            self.assertEqual(result.status_code, 200)
+            source = f"/api/cases/{result.json()['case_id']}/pdf"
+            self.assertEqual(client.get(source).status_code, 401)
+            self.assertEqual(client.get(source, auth=auth).content, self.pdf)
+
     def test_upload_size_limit_applies_to_headers_and_stream(self):
         with patch("docforensics.upload_app.MAX_UPLOAD_BYTES", 10):
             self.assertEqual(self.upload().status_code, 413)

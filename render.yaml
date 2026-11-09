@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: scopeguard-ai-ps2
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DEMO_PASSWORD
+        generateValue: true

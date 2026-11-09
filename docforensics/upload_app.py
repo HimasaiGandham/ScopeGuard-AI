@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import io
 import json
 import re
+import secrets
 from pathlib import Path
 from urllib.parse import unquote
 from uuid import uuid4
@@ -135,7 +137,20 @@ class UploadStore:
         return file
 
 
-def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
+def create_app(
+    data_directory: Path = DEFAULT_DATA, *, hosted_access: tuple[str, str] | None = None
+) -> FastAPI:
+    allowed_hosts = ["127.0.0.1", "localhost"]
+    public_origin = None
+    basic_token = None
+    if hosted_access is not None:
+        hostname, password = hosted_access
+        if not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+)+", hostname) or not password.strip():
+            raise ValueError("Hosted demo requires a public hostname and a password")
+        allowed_hosts = [hostname]
+        public_origin = f"https://{hostname}"
+        basic_token = base64.b64encode(f"reviewer:{password}".encode("utf-8"))
+
     store = UploadStore(data_directory)
     app = FastAPI(title="Local document workspace", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.store = store
@@ -144,18 +159,27 @@ def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
     app.include_router(context_router(app.state.case_store))
     app.include_router(visual_router(app.state.case_store))
     app.include_router(reviewer_router(app.state.case_store))
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
-
     @app.middleware("http")
-    async def local_requests(request: Request, call_next):
+    async def protect_workspace(request: Request, call_next):
+        if basic_token is not None and (request.method, request.url.path) != ("GET", "/api/health"):
+            scheme, _, token = request.headers.get("authorization", "").partition(" ")
+            if scheme.lower() != "basic" or not secrets.compare_digest(token.encode("latin-1"), basic_token):
+                return JSONResponse(
+                    {"detail": "Sign in with the demo credentials."}, status_code=401,
+                    headers={"WWW-Authenticate": 'Basic realm="ScopeGuard AI demo", charset="UTF-8"',
+                             "Cache-Control": "no-store"},
+                )
         if request.method == "POST":
             origin = request.headers.get("origin")
-            if request.headers.get("x-local-upload") != "1" or (origin and origin != str(request.base_url).rstrip("/")):
-                return JSONResponse({"detail": "Use the local upload screen"}, status_code=403)
+            expected_origin = public_origin or str(request.base_url).rstrip("/")
+            if request.headers.get("x-local-upload") != "1" or (origin and origin != expected_origin):
+                return JSONResponse({"detail": "Use the document workspace"}, status_code=403)
         response = await call_next(request)
         response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
+
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
     @app.exception_handler(ValueError)
     async def invalid_input(request, exc):
@@ -163,11 +187,21 @@ def create_app(data_directory: Path = DEFAULT_DATA) -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     def home():
-        return (Path(__file__).with_name("upload_page.html")).read_text(encoding="utf-8")
+        return Path(__file__).with_name("upload_page.html").read_text(encoding="utf-8").replace(
+            "{{upload_notice}}",
+            "Hosted demo. Upload only synthetic examples. Files are stored temporarily on the demo server."
+            if public_origin else "Local manual evidence tool. Files stay on this computer.",
+        )
 
     @app.get("/ingest", response_class=HTMLResponse)
     def ingestion_home():
-        return Path(__file__).with_name("ingestion_page.html").read_text(encoding="utf-8")
+        return Path(__file__).with_name("ingestion_page.html").read_text(encoding="utf-8").replace(
+            "{{upload_notice}}",
+            "<strong>Hosted demo. Upload only synthetic examples.</strong><br>"
+            "Files are stored temporarily on the demo server."
+            if public_origin else "<strong>Your files stay on this computer.</strong><br>"
+            "Originals are preserved. Authenticity requires separate verification.",
+        )
 
     @app.get("/extract", response_class=HTMLResponse)
     def extraction_home():

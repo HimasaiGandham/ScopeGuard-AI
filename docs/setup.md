@@ -28,6 +28,12 @@ Document cases accept up to 20 PDFs, PNGs, or JPEGs, at most 20 MiB each and 100
 
 Tests generate synthetic PDFs and need no private dataset or evaluation answer key. The checkout's parent folder must be writable because test files are created outside the checkout. Direct dependencies are pinned and transitive dependencies are resolved at install time. See [dependency terms](third-party.md) before distribution.
 
+## Host a judge demo on Render
+
+In the [Render dashboard](https://dashboard.render.com/), choose **New → Blueprint** and connect the repository branch that contains `render.yaml`. The Blueprint builds a Docker web service with the verified English OCR model and generates a `DEMO_PASSWORD`. When the service is live, open its HTTPS URL with `/ingest` appended. Sign in as `reviewer` using the password from the service's **Environment** page. Share the password separately with authorized reviewers.
+
+Use the synthetic packet from the [demo walkthrough](demo.md). The hosted demo uses a shared reviewer login and stores cases on the free instance's temporary filesystem. Upload only synthetic documents and download the dossier during the same session. Restart, redeployment, or idle shutdown can clear saved cases.
+
 ## Supported behavior and contracts
 
 The application supports multi-document acceptance, text/OCR, contextual comparisons, visual ink-overlap checks, saved human review, and PDF dossiers. Open a saved case and choose **Open reviewer workspace** for the [reviewer flow](reviewer.md) and [PDF export](dossier.md). The [OCR guide](ocr.md) explains the local English model. Practice commands simulate the wider coordinator. The reviewer screen invokes real feature processing.

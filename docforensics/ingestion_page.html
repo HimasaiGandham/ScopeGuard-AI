@@ -185,7 +185,7 @@ summary { cursor: pointer; }
 <div class="step"><span class="number">01</span><div><h3>Add related files</h3><p>Group documents that belong to the same case.</p></div></div>
 <div class="step"><span class="number">02</span><div><h3>Check for visual marks</h3><p>The app flags supported marks for you to inspect.</p></div></div>
 <div class="step"><span class="number">03</span><div><h3>Review and export</h3><p>Inspect the evidence and download a dossier after review.</p></div></div></section>
-<div class="privacy"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 4v3"/></svg><p><strong>Your files stay on this computer.</strong><br>Originals are preserved. Authenticity requires separate verification.</p></div></aside></div>
+<div class="privacy"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 4v3"/></svg><p>{{upload_notice}}</p></div></aside></div>
 <div class="foot row between"><span>Document investigations</span><p id="status" role="status">No case created yet.</p></div>
 <section id="case-panel" class="upload" aria-labelledby="case-title" hidden><h2 id="case-title" tabindex="-1">Your case</h2><p id="case-id" class="meta"></p><p id="counts"></p>
 <div id="visual-summary" aria-live="polite"><h2>Alteration check</h2><p id="check-status" class="warning"></p><div id="check-results"></div><button class="btn choose" id="retry-check" type="button" hidden>Run visual check again</button></div>
@@ -374,7 +374,7 @@ $('retry-check').onclick=async()=>{if(busy||!activeCase)return;setBusy(true);try
 $('case-form').addEventListener('submit',async event=>{event.preventDefault();if(busy)return;
  if(!selectedFiles.length)return;
  $('case-panel').hidden=true;
- const form=new FormData();for(const file of selectedFiles)form.append('files',file);setBusy(true);message('Saving and identifying your documents locally…');
+ const form=new FormData();for(const file of selectedFiles)form.append('files',file);setBusy(true);message('Saving and identifying your documents…');
  try{
   $('visual-summary').hidden=false;
   await showCase(await readJSON(await fetch('/api/ingestion/cases',{method:'POST',headers:{'X-Local-Upload':'1'},body:form})));
