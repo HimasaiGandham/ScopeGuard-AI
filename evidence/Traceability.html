@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScopeGuard AI evidence traceability</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f2f6fa;color:#172d41;font:16px/1.55 system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:40px 24px 60px}h1{font-size:36px;line-height:1.1;margin:0 0 14px}
+h2{font-size:23px;margin:30px 0 10px}a{color:#195581}header{border-bottom:2px solid #b8ccd9;padding-bottom:20px}
+table{width:100%;border-collapse:collapse;background:#fff}td,th{border:1px solid #cbd8e1;text-align:left;padding:10px 14px;vertical-align:top}
+th{background:#e5eff6}code{overflow-wrap:anywhere}img{max-width:100%;height:auto;border:1px solid #cbd8e1;background:white}
+figure{margin:14px 0 28px}figcaption{margin:8px 0}.note{background:#fff4d4;padding:12px 16px;border-left:4px solid #9d6600}
+</style>
+<main>
+<header><h1>Evidence traceability</h1>
+<p>Recorded rehearsal for case <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79</code>.
+The source links below open the original synthetic documents used in this demo.</p>
+<a href="../">Back to ScopeGuard AI</a></header>
+<h2 id="intake">Upload and safe failure</h2><figure><img src="upload-and-alteration-check.png" alt="Two documents saved, damaged PDF rejected, and an alteration lead shown"><figcaption>Two documents saved, damaged PDF rejected, and an alteration lead shown</figcaption></figure>
+<h2 id="ocr">Extracted scan field</h2><figure><img src="ocr-field-source.png" alt="Student name from local OCR with its source highlight"><figcaption>Student name from local OCR with its source highlight | <a href="../dataset/rehearsal/inputs/enrollment-scan.pdf">enrollment-scan.pdf</a> | Page 1 | <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79-D01</code></figcaption></figure>
+<h2 id="comparison">Internal ID conflict</h2><figure><img src="internal-conflict-source.png" alt="First source for the two different IDs in the registration"><figcaption>First source for the two different IDs in the registration | <a href="../dataset/rehearsal/inputs/registration.pdf">registration.pdf</a> | Page 1 | <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79-D02</code></figcaption></figure>
+<h2>Cross-document conflict</h2>
+<figure><img src="cross-document-source-a.png" alt="First source for the course-code mismatch"><figcaption>First source for the course-code mismatch | <a href="../dataset/rehearsal/inputs/enrollment-scan.pdf">enrollment-scan.pdf</a> | Page 1 | <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79-D01</code></figcaption></figure>
+<figure><img src="cross-document-source-b.png" alt="Second source for the course-code mismatch"><figcaption>Second source for the course-code mismatch | <a href="../dataset/rehearsal/inputs/registration.pdf">registration.pdf</a> | Page 1 | <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79-D02</code></figcaption></figure>
+<h2 id="visual">Visual evidence</h2>
+<figure><img src="visual-finding-source.png" alt="Suspicious blue mark localized on the original scanned page"><figcaption>Suspicious blue mark localized on the original scanned page | <a href="../dataset/rehearsal/inputs/enrollment-scan.pdf">enrollment-scan.pdf</a> | Page 1 | <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79-D01</code></figcaption></figure>
+<figure><img src="visual-crop.png" alt="Verified original-pixel crop of the blue mark"><figcaption>Verified original-pixel crop of the blue mark | <a href="../dataset/rehearsal/inputs/enrollment-scan.pdf">enrollment-scan.pdf</a> | Page 1 | <code>CASE-0f5aa3db155a4ae79bd1e928b9861e79-D01</code></figcaption></figure>
+<p>The <a href="https://github.com/HimasaiGandham/ScopeGuard-AI/releases/download/ps2-submission-v1/Sample-Investigation-Dossier.pdf">sample dossier</a> records the exact page IDs, coordinates, and review decisions. Use the source links on this page for online access to the recorded evidence.</p>
+</main></html>

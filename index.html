@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore a recorded ScopeGuard AI document forensics case and trace findings to the original synthetic documents.">
+  <title>ScopeGuard AI | Document Forensics Demo</title>
+  <style>
+    :root { color-scheme: light; font: 16px/1.6 system-ui, sans-serif; color: #172d41; background: #f3f7f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .wrap { width: min(100% - 2.5rem, 66rem); margin-inline: auto; }
+    header { background: #102b40; color: #f6faf9; padding: 3.5rem 0; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(2.6rem, 7vw, 5rem); line-height: 1.05; margin: .35rem 0 .85rem; }
+    h2 { font-size: 1.5rem; margin-bottom: .6rem; }
+    h3 { font-size: 1.05rem; }
+    .eyebrow { color: #b0dbc9; font-weight: 700; font-size: .85rem; }
+    header p { max-width: 40rem; }
+    a { color: #1b6254; font-weight: 650; text-underline-offset: .2em; }
+    a:focus-visible { outline: 3px solid #a26b00; outline-offset: 4px; }
+    .actions { display: flex; flex-wrap: wrap; gap: .65rem 1.25rem; align-items: center; margin-top: 1.6rem; }
+    header a { color: #e0f4eb; }
+    .primary { background: #bbdfd0; border-radius: .4rem; color: #102b40; padding: .65rem 1rem; }
+    main { padding: 2rem 0 3rem; }
+    section { margin-top: 2.2rem; }
+    .note { padding: .85rem 1rem; border-left: .25rem solid #1b6254; background: #e7f1ec; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 1rem; margin-top: 1rem; }
+    .card { background: white; border: 1px solid #c9dad3; border-radius: .5rem; padding: 1.05rem; }
+    .card p { margin-top: .35rem; }
+    .downloads { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; padding: 0; list-style: none; }
+    footer { border-top: 1px solid #c9dad3; padding: 1rem 0 2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">DATAOPS INNOVATION HACKATHON · PROBLEM STATEMENT 2</p>
+      <h1>ScopeGuard AI</h1>
+      <p>Follow a document investigation from intake to report. Inspect the findings and open the original synthetic records that support them.</p>
+      <nav class="actions" aria-label="Project links">
+        <a class="primary" href="evidence/Traceability.html">Open the evidence walkthrough</a>
+        <a href="https://github.com/HimasaiGandham/ScopeGuard-AI/releases/tag/ps2-submission-v1">Get the submission package</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <p class="note"><strong>Recorded case demo.</strong> This page shows saved results from a synthetic case. Run the <a href="https://github.com/HimasaiGandham/ScopeGuard-AI/blob/main/docs/setup.md">Python prototype</a> to upload and analyze new documents.</p>
+    <section aria-labelledby="steps">
+      <h2 id="steps">Explore the case</h2>
+      <div class="grid">
+        <article class="card"><h3><a href="evidence/Traceability.html#intake">1. Document intake</a></h3><p>See how the app kept two readable files and rejected a damaged PDF.</p></article>
+        <article class="card"><h3><a href="evidence/Traceability.html#ocr">2. Text extraction</a></h3><p>Trace an OCR field to the highlighted location on the original scan.</p></article>
+        <article class="card"><h3><a href="evidence/Traceability.html#comparison">3. Contextual findings</a></h3><p>Compare conflicting student IDs and see both sources for a course-code mismatch.</p></article>
+        <article class="card"><h3><a href="evidence/Traceability.html#visual">4. Visual findings</a></h3><p>Inspect the highlighted ink mark on the original page and in a close-up.</p></article>
+      </div>
+    </section>
+    <section aria-labelledby="materials">
+      <h2 id="materials">Submission materials</h2>
+      <ul class="downloads">
+        <li><a href="https://github.com/HimasaiGandham/ScopeGuard-AI/releases/download/ps2-submission-v1/Sample-Investigation-Dossier.pdf">Sample dossier (PDF)</a></li>
+        <li><a href="https://github.com/HimasaiGandham/ScopeGuard-AI/blob/main/docs/architecture.md">Architecture and methods</a></li>
+        <li><a href="https://github.com/HimasaiGandham/ScopeGuard-AI/blob/main/docs/limitations.md">Measured results and limitations</a></li>
+        <li><a href="https://github.com/HimasaiGandham/ScopeGuard-AI">Source repository</a></li>
+      </ul>
+    </section>
+  </main>
+  <footer><div class="wrap">ScopeGuard AI · All documents shown are synthetic examples.</div></footer>
+</body>
+</html>
